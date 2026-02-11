@@ -1,0 +1,414 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import {
+    Box,
+    Modal,
+    Typography,
+    Stack,
+    Chip,
+    Button,
+    IconButton,
+    Avatar,
+    CircularProgress,
+    Alert,
+    LinearProgress,
+    Divider,
+} from '@mui/material';
+import {
+    Close,
+    Person,
+    AccessTime,
+    Public,
+    Send,
+    Visibility,
+    AutoAwesome,
+    Groups,
+} from '@mui/icons-material';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import teamFormationApi, { CandidateRecommendation, TeamFormationRequest } from '@/utils/teamFormationApi';
+
+const MotionBox = motion(Box);
+
+interface TeamRecommendationsModalProps {
+    open: boolean;
+    onClose: () => void;
+    projectId: string;
+    projectTitle: string;
+    requiredSkills: string[];
+    teamSize: number;
+    timeline: string;
+}
+
+function getTimezoneLabel(tzDiff: number): { label: string; color: string } {
+    if (tzDiff <= 1) return { label: 'Excellent', color: '#34d399' };
+    if (tzDiff <= 2) return { label: 'Good', color: '#60a5fa' };
+    if (tzDiff <= 4) return { label: 'Fair', color: '#fbbf24' };
+    return { label: 'Poor', color: '#ef4444' };
+}
+
+function getScoreColor(score: number): string {
+    if (score >= 0.85) return '#34d399';
+    if (score >= 0.70) return '#60a5fa';
+    if (score >= 0.50) return '#fbbf24';
+    return '#ef4444';
+}
+
+export default function TeamRecommendationsModal({
+    open,
+    onClose,
+    projectId,
+    projectTitle,
+    requiredSkills,
+    teamSize,
+    timeline,
+}: TeamRecommendationsModalProps) {
+
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [recommendations, setRecommendations] = useState<CandidateRecommendation[]>([]);
+
+    useEffect(() => {
+        if (open && recommendations.length === 0) {
+            fetchRecommendations();
+        }
+    }, [open]);
+
+    const fetchRecommendations = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const request: TeamFormationRequest = {
+                project_id: projectId,
+                project_title: projectTitle,
+                required_skills: requiredSkills,
+                team_size: teamSize,
+                timeline: timeline,
+            };
+            const response = await teamFormationApi.findTeammates(request);
+            if (response.error) {
+                setError(response.error);
+            } else {
+                setRecommendations(response.recommendations || []);
+            }
+        } catch (err: any) {
+            setError(err.response?.data?.detail || 'Failed to fetch recommendations');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSendInvite = (candidate: CandidateRecommendation) => {
+        // Placeholder - show alert for now
+        alert(`Invite sent to ${candidate.name} for the role of ${candidate.role}!`);
+    };
+
+    const handleViewProfile = (username: string) => {
+        // Navigate to profile page with username
+        router.push(`/profile/${username}`);
+    };
+
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                p: 2,
+            }}
+        >
+            <Box
+                sx={{
+                    width: '100%',
+                    maxWidth: 900,
+                    maxHeight: '90vh',
+                    bgcolor: '#0d0d1a',
+                    borderRadius: '24px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                }}
+            >
+                {/* Header */}
+                <Box
+                    sx={{
+                        p: 3,
+                        borderBottom: '1px solid rgba(255,255,255,0.06)',
+                        background: 'linear-gradient(135deg, rgba(168,85,247,0.1) 0%, rgba(96,165,250,0.1) 100%)',
+                    }}
+                >
+                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                        <Stack direction="row" spacing={2} alignItems="center">
+                            <Box
+                                sx={{
+                                    p: 1.5,
+                                    borderRadius: '12px',
+                                    bgcolor: 'rgba(168,85,247,0.2)',
+                                }}
+                            >
+                                <Groups sx={{ color: '#a855f7', fontSize: 28 }} />
+                            </Box>
+                            <Box>
+                                <Typography variant="h5" fontWeight="700" sx={{ color: '#fff', mb: 0.5 }}>
+                                    Recommended Team
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                                    For "{projectTitle}"
+                                </Typography>
+                            </Box>
+                        </Stack>
+                        <IconButton onClick={onClose} sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                            <Close />
+                        </IconButton>
+                    </Stack>
+                </Box>
+
+                {/* Content */}
+                <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
+                    {loading ? (
+                        <Box sx={{ textAlign: 'center', py: 8 }}>
+                            <CircularProgress sx={{ color: '#a855f7', mb: 2 }} />
+                            <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                                AI is finding the best teammates for your project...
+                            </Typography>
+                        </Box>
+                    ) : error ? (
+                        <Alert
+                            severity="error"
+                            action={
+                                <Button color="inherit" size="small" onClick={fetchRecommendations}>
+                                    Retry
+                                </Button>
+                            }
+                            sx={{ mb: 2 }}
+                        >
+                            {error}
+                        </Alert>
+                    ) : recommendations.length === 0 ? (
+                        <Box sx={{ textAlign: 'center', py: 8 }}>
+                            <AutoAwesome sx={{ fontSize: 48, color: 'rgba(255,255,255,0.2)', mb: 2 }} />
+                            <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.6)', mb: 1 }}>
+                                No recommendations found
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)' }}>
+                                Try adjusting your project skills or expanding the team size
+                            </Typography>
+                        </Box>
+                    ) : (
+                        <Stack spacing={3}>
+                            {recommendations.map((candidate, index) => {
+                                const scorePercent = candidate.match_score;
+                                const scoreColor = getScoreColor(candidate.match_score / 100);
+                                const tzInfo = getTimezoneLabel(candidate.timezone_diff || 0);
+                                const skills = candidate.skills.split(/[,\s]+/).filter(Boolean);
+
+                                return (
+                                    <MotionBox
+                                        key={`${candidate.email}-${index}`}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1 }}
+                                        sx={{
+                                            bgcolor: 'rgba(20, 20, 40, 0.6)',
+                                            border: '1px solid rgba(255,255,255,0.08)',
+                                            borderRadius: '16px',
+                                            p: 3,
+                                            '&:hover': {
+                                                borderColor: 'rgba(168,85,247,0.3)',
+                                            },
+                                        }}
+                                    >
+                                        {/* Candidate Header */}
+                                        <Stack
+                                            direction={{ xs: 'column', sm: 'row' }}
+                                            justifyContent="space-between"
+                                            alignItems={{ xs: 'flex-start', sm: 'center' }}
+                                            spacing={2}
+                                            sx={{ mb: 2 }}
+                                        >
+                                            <Stack direction="row" spacing={2} alignItems="center">
+                                                <Avatar
+                                                    sx={{
+                                                        width: 56,
+                                                        height: 56,
+                                                        bgcolor: '#6366f1',
+                                                        fontSize: '1.25rem',
+                                                        fontWeight: 600,
+                                                    }}
+                                                >
+                                                    {(candidate.name || candidate.username || 'U')
+                                                        .split(' ')
+                                                        .map((n) => n[0])
+                                                        .join('')
+                                                        .toUpperCase()
+                                                        .slice(0, 2)}
+                                                </Avatar>
+                                                <Box>
+                                                    <Typography variant="h6" fontWeight="700" sx={{ color: '#fff' }}>
+                                                        {candidate.name || candidate.username || 'Unknown'}
+                                                    </Typography>
+                                                    {candidate.username && (
+                                                        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)', mb: 0.5 }}>
+                                                            @{candidate.username}
+                                                        </Typography>
+                                                    )}
+                                                    <Chip
+                                                        label={candidate.role}
+                                                        size="small"
+                                                        sx={{
+                                                            bgcolor: 'rgba(168,85,247,0.2)',
+                                                            color: '#c084fc',
+                                                            fontWeight: 600,
+                                                            fontSize: '0.75rem',
+                                                        }}
+                                                    />
+                                                </Box>
+                                            </Stack>
+
+                                            {/* Match Score */}
+                                            <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+                                                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                                                    Match Score
+                                                </Typography>
+                                                <Typography
+                                                    variant="h4"
+                                                    fontWeight="800"
+                                                    sx={{ color: scoreColor }}
+                                                >
+                                                    {scorePercent}%
+                                                </Typography>
+                                            </Box>
+                                        </Stack>
+
+                                        {/* Stats Row */}
+                                        <Stack
+                                            direction="row"
+                                            spacing={3}
+                                            sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}
+                                        >
+                                            <Stack direction="row" alignItems="center" spacing={0.5}>
+                                                <AccessTime sx={{ fontSize: 16, color: 'rgba(255,255,255,0.5)' }} />
+                                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                                                    {candidate.availability_hours} hrs/week
+                                                </Typography>
+                                            </Stack>
+                                            <Stack direction="row" alignItems="center" spacing={0.5}>
+                                                <Public sx={{ fontSize: 16, color: 'rgba(255,255,255,0.5)' }} />
+                                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                                                    {candidate.timezone}
+                                                </Typography>
+                                                <Chip
+                                                    label={tzInfo.label}
+                                                    size="small"
+                                                    sx={{
+                                                        height: 20,
+                                                        fontSize: '0.65rem',
+                                                        bgcolor: `${tzInfo.color}20`,
+                                                        color: tzInfo.color,
+                                                        fontWeight: 600,
+                                                    }}
+                                                />
+                                            </Stack>
+                                        </Stack>
+
+                                        {/* Skills */}
+                                        <Box sx={{ mb: 2 }}>
+                                            <Typography
+                                                variant="caption"
+                                                sx={{ color: 'rgba(255,255,255,0.5)', mb: 1, display: 'block' }}
+                                            >
+                                                Skills
+                                            </Typography>
+                                            <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5}>
+                                                {skills.slice(0, 6).map((skill, i) => (
+                                                    <Chip
+                                                        key={i}
+                                                        label={skill}
+                                                        size="small"
+                                                        sx={{
+                                                            bgcolor: 'rgba(255,255,255,0.05)',
+                                                            color: 'rgba(255,255,255,0.7)',
+                                                            fontSize: '0.7rem',
+                                                        }}
+                                                    />
+                                                ))}
+                                                {skills.length > 6 && (
+                                                    <Chip
+                                                        label={`+${skills.length - 6}`}
+                                                        size="small"
+                                                        sx={{
+                                                            bgcolor: 'rgba(255,255,255,0.05)',
+                                                            color: 'rgba(255,255,255,0.5)',
+                                                            fontSize: '0.7rem',
+                                                        }}
+                                                    />
+                                                )}
+                                            </Stack>
+                                        </Box>
+
+                                        {/* Reason (if provided) */}
+                                        {candidate.reasoning && (
+                                            <Box
+                                                sx={{
+                                                    bgcolor: 'rgba(168,85,247,0.1)',
+                                                    borderRadius: '8px',
+                                                    p: 2,
+                                                    mb: 2,
+                                                }}
+                                            >
+                                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                                                    <strong>Why:</strong> "{candidate.reasoning}"
+                                                </Typography>
+                                            </Box>
+                                        )}
+
+                                        <Divider sx={{ borderColor: 'rgba(255,255,255,0.06)', my: 2 }} />
+
+                                        {/* Actions */}
+                                        <Stack direction="row" spacing={2} justifyContent="flex-end">
+                                            <Button
+                                                variant="outlined"
+                                                startIcon={<Visibility />}
+                                                onClick={() => handleViewProfile(candidate.username)}
+                                                sx={{
+                                                    borderColor: 'rgba(255,255,255,0.2)',
+                                                    color: 'rgba(255,255,255,0.7)',
+                                                    textTransform: 'none',
+                                                    '&:hover': {
+                                                        borderColor: 'rgba(255,255,255,0.4)',
+                                                        bgcolor: 'rgba(255,255,255,0.05)',
+                                                    },
+                                                }}
+                                            >
+                                                View Profile
+                                            </Button>
+                                            <Button
+                                                variant="contained"
+                                                startIcon={<Send />}
+                                                onClick={() => handleSendInvite(candidate)}
+                                                sx={{
+                                                    bgcolor: '#a855f7',
+                                                    color: '#fff',
+                                                    textTransform: 'none',
+                                                    fontWeight: 600,
+                                                    '&:hover': { bgcolor: '#9333ea' },
+                                                }}
+                                            >
+                                                Send Invite
+                                            </Button>
+                                        </Stack>
+                                    </MotionBox>
+                                );
+                            })}
+                        </Stack>
+                    )}
+                </Box>
+            </Box>
+        </Modal>
+    );
+}
