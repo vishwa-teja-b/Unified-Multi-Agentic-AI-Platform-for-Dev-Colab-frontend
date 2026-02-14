@@ -79,7 +79,7 @@ export default function ProfilePage() {
     return (
         <Box sx={{
             minHeight: '100vh',
-            background: 'linear-gradient(180deg, #0a0a1a 0%, #12122a 50%, #1a1a2e 100%)',
+            bgcolor: 'background.default',
             position: 'relative',
             overflow: 'hidden',
             pb: 8,
@@ -361,7 +361,7 @@ export default function ProfilePage() {
                 {/* Content Grid */}
                 <Grid container spacing={3}>
                     {/* Left Column - About & Skills */}
-                    <Grid item xs={12} lg={8}>
+                    <Grid size={{ xs: 12, lg: 8 }}>
                         <Stack spacing={3}>
                             {/* About */}
                             <MotionBox
@@ -369,23 +369,22 @@ export default function ProfilePage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5, delay: 0.1 }}
                                 sx={{
-                                    background: 'rgba(20, 20, 40, 0.6)',
+                                    bgcolor: 'background.paper',
                                     backdropFilter: 'blur(16px)',
-                                    border: '1px solid rgba(255,255,255,0.06)',
-                                    borderRadius: '20px',
+                                    border: 1,
+                                    borderColor: 'divider',
+                                    borderRadius: 4,
                                     p: 4,
                                 }}
                             >
-                                <Typography variant="h6" sx={{ fontWeight: 700, color: '#fff', mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
                                     <Box sx={{
-                                        background: 'linear-gradient(135deg, #a855f7, #ec4899)',
-                                        WebkitBackgroundClip: 'text',
-                                        WebkitTextFillColor: 'transparent',
+                                        color: 'primary.main',
                                         fontSize: '1.2rem',
                                     }}>✦</Box>
                                     About Me
                                 </Typography>
-                                <Typography sx={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.8, fontSize: '1rem' }}>
+                                <Typography sx={{ color: 'text.secondary', lineHeight: 1.8, fontSize: '1rem' }}>
                                     {profile.bio || 'No bio provided yet.'}
                                 </Typography>
                             </MotionBox>
@@ -396,10 +395,11 @@ export default function ProfilePage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5, delay: 0.2 }}
                                 sx={{
-                                    background: 'rgba(20, 20, 40, 0.6)',
+                                    bgcolor: 'background.paper',
                                     backdropFilter: 'blur(16px)',
-                                    border: '1px solid rgba(255,255,255,0.06)',
-                                    borderRadius: '20px',
+                                    border: 1,
+                                    borderColor: 'divider',
+                                    borderRadius: 4,
                                     p: 4,
                                 }}
                             >
@@ -407,12 +407,13 @@ export default function ProfilePage() {
                                     <Box sx={{
                                         p: 1.2,
                                         borderRadius: '12px',
-                                        background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))',
+                                        bgcolor: 'primary.light',
                                         display: 'flex',
+                                        opacity: 0.2
                                     }}>
-                                        <Code sx={{ color: '#818cf8', fontSize: 22 }} />
+                                        <Code sx={{ color: 'primary.main', fontSize: 22 }} />
                                     </Box>
-                                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#fff' }}>Skills & Stack</Typography>
+                                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>Skills & Stack</Typography>
                                 </Stack>
 
                                 {/* Primary Skills */}
@@ -473,7 +474,7 @@ export default function ProfilePage() {
                     </Grid>
 
                     {/* Right Column - Stats */}
-                    <Grid item xs={12} lg={4}>
+                    <Grid size={{ xs: 12, lg: 4 }}>
                         <Stack spacing={3}>
                             {/* Experience Level */}
                             <MotionBox
@@ -603,7 +604,7 @@ export default function ProfilePage() {
                         </Stack>
                     </Grid>
                 </Grid>
-            </Container>
-        </Box>
+            </Container >
+        </Box >
     );
 }

@@ -1,8 +1,10 @@
 'use client';
 
-import { Box, Button, Container, Typography, Stack, IconButton } from '@mui/material';
+import { Box, Button, Container, Typography, Stack, IconButton, CircularProgress } from '@mui/material';
 import { Groups, AutoFixHigh, Bolt, ArrowForward, Brightness4, Brightness7 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useThemeContext } from '@/context/ThemeContext';
 import { useTheme } from '@mui/material/styles';
@@ -23,7 +25,7 @@ function NavBar() {
         right: 0,
         zIndex: 100,
         backdropFilter: 'blur(20px)',
-        bgcolor: mode === 'light' ? 'rgba(255,255,255,0.8)' : 'rgba(10,10,10,0.8)',
+        bgcolor: mode === 'light' ? 'rgba(245, 246, 247, 0.8)' : 'rgba(47, 47, 51, 0.8)',
         borderBottom: `1px solid ${theme.palette.divider}`,
       }}
     >
@@ -59,9 +61,10 @@ function NavBar() {
               fontWeight: 600,
               borderRadius: 2,
               textTransform: 'none',
+
               px: 2.5,
               '&:hover': {
-                bgcolor: mode === 'light' ? '#333' : '#e0e0e0',
+                bgcolor: 'text.secondary',
               }
             }}
           >
@@ -75,6 +78,7 @@ function NavBar() {
 
 function HeroSection() {
   const { mode } = useThemeContext();
+  const theme = useTheme();
 
   return (
     <Box sx={{
@@ -107,10 +111,7 @@ function HeroSection() {
             <Box
               component="span"
               sx={{
-                background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                color: 'text.primary',
               }}
             >
               Build together.
@@ -161,11 +162,10 @@ function HeroSection() {
               py: 1.5,
               transition: 'transform 0.2s, box-shadow 0.2s',
               '&:hover': {
-                bgcolor: mode === 'light' ? '#222' : '#f0f0f0',
+                bgcolor: 'text.primary',
+                opacity: 0.9,
                 transform: 'translateY(-2px)',
-                boxShadow: mode === 'light'
-                  ? '0 12px 24px rgba(0,0,0,0.15)'
-                  : '0 12px 24px rgba(255,255,255,0.1)',
+                boxShadow: theme.shadows[4],
               }
             }}
           >
@@ -324,7 +324,8 @@ function CTASection() {
               px: 5,
               py: 1.5,
               '&:hover': {
-                bgcolor: mode === 'light' ? '#222' : '#f0f0f0',
+                bgcolor: 'text.primary',
+                opacity: 0.9,
               }
             }}
           >
@@ -376,6 +377,35 @@ function Footer() {
 }
 
 export default function LandingPage() {
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    // Check for token on mount
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    if (token) {
+      router.push('/dashboard');
+    } else {
+      router.push('/login');
+    }
+    setChecking(false);
+  }, [router]);
+
+  if (checking) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: 'background.default' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Fallback: If for some reason redirect is slow, we render the landing page, 
+  // but practically users won't see this often as checking is fast.
+  // Or if we want to completely disable landing page view:
+  return null;
+
+  /* 
+  // Original Landing Page Content (Commented out as per user request to redirect to login if not authenticated)
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
       <NavBar />
@@ -385,4 +415,5 @@ export default function LandingPage() {
       <Footer />
     </Box>
   );
+  */
 }

@@ -57,30 +57,117 @@ export default function ThemeContextprovider({ children }: { children: React.Rea
                     mode,
                     ...(mode === 'light'
                         ? {
-                            primary: { main: '#000000' },
-                            background: { default: '#FDFCF6', paper: '#ffffff' },
-                            text: { primary: '#1A1A1A', secondary: '#666666' },
+                            // Light Mode (Pearl White & Charcoal)
+                            primary: { main: '#2F2F33' }, // Charcoal Stone
+                            secondary: { main: '#F5F6F7' }, // Pearl White
+                            background: { default: '#F5F6F7', paper: '#FFFFFF' },
+                            text: { primary: '#2F2F33', secondary: 'rgba(47, 47, 51, 0.7)' },
+                            divider: 'rgba(47, 47, 51, 0.12)',
                         }
                         : {
-                            primary: { main: '#ffffff' },
-                            background: { default: '#030014', paper: '#0F0B1E' },
-                            text: { primary: '#ffffff', secondary: '#A1A1AA' },
+                            // Dark Mode (Charcoal Stone & Pearl White)
+                            primary: { main: '#F5F6F7' },
+                            secondary: { main: '#2F2F33' },
+                            background: { default: '#2F2F33', paper: '#3A3A3F' }, // Charcoal Stone & slightly lighter
+                            text: { primary: '#F5F6F7', secondary: 'rgba(245, 246, 247, 0.7)' },
+                            divider: 'rgba(245, 246, 247, 0.1)',
                         }),
                 },
                 typography: {
-                    fontFamily: 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
+                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                    h1: { fontSize: '3.5rem', fontWeight: 700, letterSpacing: '-0.02em' },
+                    h2: { fontSize: '2.75rem', fontWeight: 600, letterSpacing: '-0.01em' },
+                    h3: { fontSize: '2.25rem', fontWeight: 600 },
+                    h4: { fontSize: '1.75rem', fontWeight: 500 },
+                    body1: { fontSize: '1rem', lineHeight: 1.7 },
+                    body2: { fontSize: '0.875rem', lineHeight: 1.6 },
                 },
+                shape: {
+                    borderRadius: 12,
+                },
+                shadows: [
+                    'none',
+                    '0px 2px 8px rgba(47, 47, 51, 0.04)',
+                    '0px 4px 12px rgba(47, 47, 51, 0.06)',
+                    '0px 6px 16px rgba(47, 47, 51, 0.08)',
+                    '0px 8px 24px rgba(47, 47, 51, 0.1)',
+                    '0px 12px 32px rgba(47, 47, 51, 0.12)',
+                    'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none'
+                ],
                 components: {
                     MuiButton: {
                         styleOverrides: {
                             root: {
-                                borderRadius: 8,
                                 textTransform: 'none',
-                                fontWeight: 600,
+                                fontWeight: 500,
+                                borderRadius: 8,
+                                padding: '10px 24px',
+                                fontSize: '0.9375rem',
+                            },
+                            contained: {
+                                boxShadow: 'none',
+                                '&:hover': {
+                                    boxShadow: '0px 4px 12px rgba(47, 47, 51, 0.15)',
+                                },
                             },
                         },
                     },
-                }
+                    MuiCard: {
+                        styleOverrides: {
+                            root: {
+                                borderRadius: 16,
+                                boxShadow: mode === 'light' ? '0px 2px 8px rgba(47, 47, 51, 0.04)' : 'none',
+                                border: mode === 'light' ? '1px solid rgba(47, 47, 51, 0.08)' : '1px solid rgba(245, 246, 247, 0.1)',
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                '&:hover': {
+                                    boxShadow: mode === 'light' ? '0px 8px 24px rgba(47, 47, 51, 0.1)' : 'none',
+                                    transform: 'translateY(-2px)',
+                                },
+                            },
+                        },
+                    },
+                    MuiAppBar: {
+                        styleOverrides: {
+                            root: {
+                                backgroundColor: mode === 'light' ? '#FFFFFF' : '#3A3A3F',
+                                color: mode === 'light' ? '#2F2F33' : '#F5F6F7',
+                                boxShadow: '0px 1px 3px rgba(47, 47, 51, 0.06)',
+                            },
+                        },
+                    },
+                    MuiTextField: {
+                        styleOverrides: {
+                            root: {
+                                '& .MuiOutlinedInput-root': {
+                                    backgroundColor: mode === 'light' ? '#FFFFFF' : '#2F2F33',
+                                    borderRadius: 8,
+                                    '& fieldset': {
+                                        borderColor: mode === 'light' ? 'rgba(47, 47, 51, 0.23)' : 'rgba(245, 246, 247, 0.23)',
+                                    },
+                                    '&:hover fieldset': {
+                                        borderColor: mode === 'light' ? '#2F2F33' : '#F5F6F7',
+                                    },
+                                    '&.Mui-focused fieldset': {
+                                        borderColor: mode === 'light' ? '#2F2F33' : '#F5F6F7',
+                                        borderWidth: 2,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    MuiChip: {
+                        styleOverrides: {
+                            root: {
+                                borderRadius: 6,
+                                fontWeight: 500,
+                            },
+                            filled: {
+                                backgroundColor: mode === 'light' ? '#2F2F33' : '#F5F6F7',
+                                color: mode === 'light' ? '#F5F6F7' : '#2F2F33',
+                            },
+                        },
+                    },
+                },
             }),
         [mode]
     );

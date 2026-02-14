@@ -45,7 +45,7 @@ const SKILL_OPTIONS = [
     'Node.js', 'Express', 'NestJS', 'Django', 'FastAPI', 'Spring Boot', 'Laravel',
     'PostgreSQL', 'MongoDB', 'MySQL', 'Redis', 'GraphQL', 'Prisma',
     'Docker', 'Kubernetes', 'AWS', 'GCP', 'Azure', 'Terraform', 'React Native',
-    'Machine Learning', 'Deep Learning', 'NLP', 'Computer Vision', 'TensorFlow', 'PyTorch', 'LangChain', 'LangGraph', 'LangSmith', 'MySQL'
+    'Machine Learning', 'Deep Learning', 'NLP', 'Computer Vision', 'TensorFlow', 'PyTorch', 'LangChain', 'LangGraph', 'LangSmith'
 ];
 
 const INTEREST_OPTIONS = [

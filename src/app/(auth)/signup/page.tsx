@@ -23,7 +23,7 @@ export default function SignupPage() {
     const theme = useTheme();
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
-        full_name: '',
+        username: '',
         email: '',
         password: '',
         confirm_password: ''
@@ -38,8 +38,24 @@ export default function SignupPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validation Logic
         if (formData.password !== formData.confirm_password) {
             setError("Passwords do not match");
+            return;
+        }
+        if (formData.password.length < 8) {
+            setError("Password must be at least 8 characters long");
+            return;
+        }
+
+        const usernameRegex = /^[a-zA-Z0-9_]+$/;
+        if (!usernameRegex.test(formData.username)) {
+            setError("Username can only contain letters, numbers, and underscores (no spaces)");
+            return;
+        }
+        if (formData.username.length < 3 || formData.username.length > 50) {
+            setError("Username must be between 3 and 50 characters");
             return;
         }
 
@@ -49,7 +65,7 @@ export default function SignupPage() {
             const response = await api.post('/api/auth/register', {
                 email: formData.email,
                 password: formData.password,
-                full_name: formData.full_name
+                username: formData.username
             });
 
             // Auto-login after register if tokens are returned, otherwise redirect to login
@@ -123,9 +139,9 @@ export default function SignupPage() {
                     <Box component="form" onSubmit={handleSubmit}>
                         <TextField
                             fullWidth
-                            name="full_name"
-                            placeholder="Full Name"
-                            value={formData.full_name}
+                            name="username"
+                            placeholder="Username"
+                            value={formData.username}
                             onChange={handleChange}
                             variant="outlined"
                             sx={{

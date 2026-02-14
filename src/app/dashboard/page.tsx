@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     Container,
@@ -15,6 +15,7 @@ import {
     LinearProgress,
     AvatarGroup,
     Divider,
+    CircularProgress,
 } from '@mui/material';
 import {
     Folder,
@@ -35,10 +36,15 @@ import {
     Code,
     Explore,
     Chat,
+    Brightness4,
+    Brightness7,
+    Search,
 } from '@mui/icons-material';
+import { useThemeContext } from '@/context/ThemeContext';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { projectApi, InvitationResponse } from '@/utils/projectApi';
 
 const MotionBox = motion(Box);
 
@@ -57,68 +63,12 @@ const stats = [
     { label: 'Completed', value: 12, icon: <TrendingUp />, color: '#34d399' },
 ];
 
-const pendingInvites = [
-    {
-        id: 1,
-        projectName: 'AI Study Buddy',
-        role: 'Backend Developer',
-        invitedBy: 'Priya Sharma',
-        invitedByAvatar: null,
-        skills: ['Python', 'FastAPI', 'MongoDB'],
-        daysAgo: 2,
-    },
-    {
-        id: 2,
-        projectName: 'Fitness Tracker Pro',
-        role: 'Mobile Developer',
-        invitedBy: 'Arjun Reddy',
-        invitedByAvatar: null,
-        skills: ['React Native', 'Firebase'],
-        daysAgo: 1,
-    },
-];
+// pendingInvites: fetched live from API inside PendingInvitations component
 
-const myProjects = [
-    {
-        id: 'proj1',
-        name: 'Campus Event Manager',
-        description: 'An app for college students to discover and manage campus events',
-        status: 'active',
-        role: 'Owner',
-        progress: 45,
-        currentSprint: 2,
-        totalSprints: 4,
-        teamSize: 4,
-        teamAvatars: [null, null, null, null],
-        dueDate: '2026-03-15',
-    },
-    {
-        id: 'proj2',
-        name: 'DevCollab Platform',
-        description: 'AI-powered developer collaboration and team matching',
-        status: 'active',
-        role: 'Mobile Dev',
-        progress: 68,
-        currentSprint: 3,
-        totalSprints: 4,
-        teamSize: 5,
-        teamAvatars: [null, null, null, null, null],
-        dueDate: '2026-02-28',
-    },
-    {
-        id: 'proj3',
-        name: 'Smart Notes AI',
-        description: 'AI-powered note-taking app with auto-summarization',
-        status: 'forming',
-        role: 'Owner',
-        progress: 10,
-        currentSprint: 1,
-        totalSprints: 6,
-        teamSize: 2,
-        teamAvatars: [null, null],
-        dueDate: '2026-04-30',
-    },
-];
+// pendingInvites: fetched live from API inside PendingInvitations component
+
+// myProjects: fetched live from API inside MyProjects component
+
 
 const upcomingTasks = [
     { id: 1, title: 'Implement user authentication', project: 'Campus Event Manager', priority: 'high', dueDate: 'Today', status: 'in_progress' },
@@ -145,30 +95,34 @@ const discoverProjects = [
 
 function DashboardNav() {
     const router = useRouter();
+    const { mode, toggleColorMode } = useThemeContext();
 
     return (
         <Box sx={{
-            bgcolor: 'rgba(10, 10, 26, 0.95)',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
-            backdropFilter: 'blur(20px)',
+            bgcolor: 'background.paper',
+            borderBottom: 1,
+            borderColor: 'divider',
             position: 'sticky',
             top: 0,
             zIndex: 100,
         }}>
             <Container maxWidth="xl">
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ height: 64 }}>
-                    <Typography variant="h6" fontWeight="700" sx={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                    <Typography variant="h6" fontWeight="700" sx={{ color: 'text.primary', letterSpacing: '-0.02em' }}>
                         DevCollab
                     </Typography>
 
                     <Stack direction="row" spacing={1} alignItems="center">
-                        <IconButton sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                        <IconButton onClick={toggleColorMode} sx={{ color: 'text.secondary' }}>
+                            {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+                        </IconButton>
+                        <IconButton onClick={() => router.push('/invitations')} sx={{ color: 'text.secondary' }}>
                             <Notifications />
                         </IconButton>
-                        <IconButton onClick={() => router.push('/profile')} sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                        <IconButton onClick={() => router.push('/profile')} sx={{ color: 'text.secondary' }}>
                             <Person />
                         </IconButton>
-                        <IconButton sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                        <IconButton sx={{ color: 'text.secondary' }}>
                             <Logout />
                         </IconButton>
                     </Stack>
@@ -182,18 +136,20 @@ function StatsCards() {
     return (
         <Grid container spacing={2.5}>
             {stats.map((stat, index) => (
-                <Grid item xs={6} md={3} key={stat.label}>
+                <Grid size={{ xs: 6, md: 3 }} key={stat.label}>
                     <MotionBox
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                         sx={{
-                            background: 'rgba(20, 20, 40, 0.6)',
-                            border: '1px solid rgba(255,255,255,0.06)',
-                            borderRadius: '16px',
+                            bgcolor: 'background.paper',
+                            borderRadius: 4,
                             p: 3,
                             position: 'relative',
                             overflow: 'hidden',
+                            boxShadow: 1,
+                            border: 1,
+                            borderColor: 'divider',
                         }}
                     >
                         <Box sx={{
@@ -206,10 +162,10 @@ function StatsCards() {
                             background: `radial-gradient(circle, ${stat.color}15 0%, transparent 70%)`,
                         }} />
                         <Box sx={{ color: stat.color, mb: 1.5 }}>{stat.icon}</Box>
-                        <Typography variant="h4" fontWeight="700" sx={{ color: '#fff', mb: 0.5 }}>
+                        <Typography variant="h4" fontWeight="700" sx={{ color: 'text.primary', mb: 0.5 }}>
                             {stat.value}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                             {stat.label}
                         </Typography>
                     </MotionBox>
@@ -220,7 +176,29 @@ function StatsCards() {
 }
 
 function PendingInvitations() {
-    if (pendingInvites.length === 0) return null;
+    const router = useRouter();
+    const [invites, setInvites] = useState<InvitationResponse[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+    useEffect(() => {
+        projectApi.getMyInvitations()
+            .then(data => setInvites(data.filter((i: InvitationResponse) => i.status === 'PENDING')))
+            .catch(() => { })
+            .finally(() => setLoading(false));
+    }, []);
+
+    const handleAction = async (id: string, status: string) => {
+        setActionLoading(id);
+        try {
+            await projectApi.updateInvitation({ invitation_id: id, status });
+            setInvites(prev => prev.filter(i => i.id !== id));
+        } catch (e) { /* silently fail */ }
+        setActionLoading(null);
+    };
+
+    if (loading) return null;
+    if (invites.length === 0) return null;
 
     return (
         <MotionBox
@@ -228,54 +206,57 @@ function PendingInvitations() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             sx={{
-                background: 'linear-gradient(135deg, rgba(244,114,182,0.1) 0%, rgba(168,85,247,0.1) 100%)',
-                border: '1px solid rgba(244,114,182,0.2)',
-                borderRadius: '20px',
+                bgcolor: 'background.paper',
+                borderRadius: 4,
                 p: 3,
+                boxShadow: 1,
+                border: 1,
+                borderColor: 'divider',
             }}
         >
             <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
                 <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <Box sx={{ p: 1, borderRadius: '10px', bgcolor: 'rgba(244,114,182,0.2)' }}>
-                        <Mail sx={{ color: '#f472b6' }} />
+                    <Box sx={{ p: 1, borderRadius: '10px', bgcolor: 'secondary.main' }}>
+                        <Mail color="primary" />
                     </Box>
-                    <Typography variant="h6" fontWeight="700" sx={{ color: '#fff' }}>
+                    <Typography variant="h6" fontWeight="700" sx={{ color: 'text.primary' }}>
                         Pending Invitations
                     </Typography>
-                    <Chip label={pendingInvites.length} size="small" sx={{ bgcolor: '#f472b6', color: '#fff', fontWeight: 600 }} />
+                    <Chip label={invites.length} size="small" sx={{ bgcolor: 'secondary.dark', color: 'text.primary', fontWeight: 600 }} />
                 </Stack>
+                <Button
+                    onClick={() => router.push('/invitations')}
+                    sx={{ color: 'text.secondary', textTransform: 'none', fontWeight: 600 }}
+                >
+                    View All
+                </Button>
             </Stack>
 
             <Stack spacing={2}>
-                {pendingInvites.map((invite) => (
+                {invites.slice(0, 3).map((invite) => (
                     <Box key={invite.id} sx={{
-                        bgcolor: 'rgba(0,0,0,0.2)',
-                        borderRadius: '12px',
+                        bgcolor: 'background.default',
+                        borderRadius: 3,
                         p: 2.5,
+                        border: 1,
+                        borderColor: 'divider',
                     }}>
                         <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2}>
                             <Box>
-                                <Typography variant="subtitle1" fontWeight="600" sx={{ color: '#fff', mb: 0.5 }}>
-                                    {invite.projectName}
+                                <Typography variant="subtitle1" fontWeight="600" sx={{ color: 'text.primary', mb: 0.5 }}>
+                                    {invite.project_title}
                                 </Typography>
-                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)', mb: 1 }}>
-                                    as <strong style={{ color: '#f472b6' }}>{invite.role}</strong> • invited by {invite.invitedBy}
+                                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
+                                    as <strong style={{ color: 'text.primary' }}>{invite.role}</strong>
                                 </Typography>
-                                <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5}>
-                                    {invite.skills.map(skill => (
-                                        <Chip key={skill} label={skill} size="small" sx={{
-                                            bgcolor: 'rgba(255,255,255,0.05)',
-                                            color: 'rgba(255,255,255,0.7)',
-                                            fontSize: '0.7rem',
-                                        }} />
-                                    ))}
-                                </Stack>
                             </Box>
                             <Stack direction="row" spacing={1}>
                                 <Button
                                     variant="contained"
                                     size="small"
-                                    startIcon={<Check />}
+                                    startIcon={actionLoading === invite.id ? <CircularProgress size={14} color="inherit" /> : <Check />}
+                                    disabled={actionLoading === invite.id}
+                                    onClick={() => handleAction(invite.id, 'ACCEPTED')}
                                     sx={{
                                         bgcolor: '#34d399',
                                         color: '#000',
@@ -289,6 +270,8 @@ function PendingInvitations() {
                                     variant="outlined"
                                     size="small"
                                     startIcon={<Close />}
+                                    disabled={actionLoading === invite.id}
+                                    onClick={() => handleAction(invite.id, 'REJECTED')}
                                     sx={{
                                         borderColor: 'rgba(255,255,255,0.2)',
                                         color: 'rgba(255,255,255,0.7)',
@@ -308,6 +291,86 @@ function PendingInvitations() {
 
 function MyProjects() {
     const router = useRouter();
+    const [projects, setProjects] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const data = await projectApi.getMyProjects();
+
+                // Map API response to UI format
+                const mappedProjects = data.map((p: any) => {
+                    // Logic to determine role (assuming current user is owner for now if auth_user_id matches, 
+                    // but we need current user ID. For now, defaulting to 'Owner' for created projects)
+                    // TODO: Get actual current user ID to check role
+
+                    // Randomize progress/sprints for demo visualization since backend doesn't track this yet
+                    const totalSprints = 4;
+                    const currentSprint = Math.floor(Math.random() * totalSprints) + 1;
+                    const progress = Math.floor(Math.random() * 100);
+
+                    return {
+                        id: p.id,
+                        name: p.title,
+                        description: p.description,
+                        status: p.status || 'Active', // Default to active if undefined
+                        role: 'Owner', // Defaulting to Owner for "My Projects" endpoint for now
+                        progress: progress,
+                        currentSprint: currentSprint,
+                        totalSprints: totalSprints,
+                        teamSize: p.team_size?.max || 4,
+                        teamAvatars: Array(Math.min(p.team_size?.min || 1, 4)).fill(null), // Placeholder avatars
+                        dueDate: p.estimated_duration || 'TBD',
+                    };
+                });
+
+                setProjects(mappedProjects);
+            } catch (error) {
+                console.error("Failed to fetch projects:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProjects();
+    }, []);
+
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (projects.length === 0) {
+        return (
+            <MotionBox
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                sx={{ textAlign: 'center', py: 8, bgcolor: 'background.paper', borderRadius: 4, border: 1, borderColor: 'divider' }}
+            >
+                <Box sx={{ mb: 2, bgcolor: 'action.hover', width: 60, height: 60, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto' }}>
+                    <Folder sx={{ fontSize: 30, color: 'text.secondary' }} />
+                </Box>
+                <Typography variant="h6" color="text.primary" gutterBottom>
+                    No projects yet
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400, mx: 'auto' }}>
+                    Create your first project to start finding teammates and planning your roadmap.
+                </Typography>
+                <Button
+                    variant="contained"
+                    startIcon={<Add />}
+                    onClick={() => router.push('/projects/create')}
+                >
+                    Create Project
+                </Button>
+            </MotionBox>
+        );
+    }
 
     return (
         <MotionBox
@@ -320,13 +383,13 @@ function MyProjects() {
                     <Box sx={{ p: 1, borderRadius: '10px', bgcolor: 'rgba(168,85,247,0.2)' }}>
                         <Folder sx={{ color: '#a855f7' }} />
                     </Box>
-                    <Typography variant="h6" fontWeight="700" sx={{ color: '#fff' }}>
+                    <Typography variant="h6" fontWeight="700" sx={{ color: 'text.primary' }}>
                         My Projects
                     </Typography>
                 </Stack>
                 <Button
                     startIcon={<Add />}
-                    onClick={() => router.push('/projects/new')}
+                    onClick={() => router.push('/projects/create')}
                     sx={{
                         color: '#a855f7',
                         textTransform: 'none',
@@ -339,50 +402,55 @@ function MyProjects() {
             </Stack>
 
             <Grid container spacing={2.5}>
-                {myProjects.map((project) => (
-                    <Grid item xs={12} md={4} key={project.id}>
-                        <Box sx={{
-                            background: 'rgba(20, 20, 40, 0.6)',
-                            border: '1px solid rgba(255,255,255,0.06)',
-                            borderRadius: '16px',
-                            p: 3,
-                            height: '100%',
-                            cursor: 'pointer',
-                            transition: 'all 0.3s ease',
-                            '&:hover': {
-                                borderColor: 'rgba(168,85,247,0.3)',
-                                transform: 'translateY(-4px)',
-                            },
-                        }}>
+                {projects.map((project) => (
+                    <Grid size={{ xs: 12, md: 4 }} key={project.id}>
+                        <Box
+                            onClick={() => router.push(`/projects/${project.id}`)}
+                            sx={{
+                                bgcolor: 'background.paper', // Changed from hardcoded dark color
+                                border: 1,
+                                borderColor: 'divider',
+                                borderRadius: '16px',
+                                p: 3,
+                                height: '100%',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                '&:hover': {
+                                    borderColor: 'primary.main',
+                                    transform: 'translateY(-4px)',
+                                    boxShadow: 2,
+                                },
+                            }}>
                             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
                                 <Box>
-                                    <Typography variant="subtitle1" fontWeight="700" sx={{ color: '#fff', mb: 0.5 }}>
+                                    <Typography variant="subtitle1" fontWeight="700" sx={{ color: 'text.primary', mb: 0.5 }}>
                                         {project.name}
                                     </Typography>
                                     <Chip
-                                        label={project.status === 'active' ? 'Active' : 'Forming'}
+                                        label={project.status}
                                         size="small"
                                         sx={{
-                                            bgcolor: project.status === 'active' ? 'rgba(52,211,153,0.2)' : 'rgba(251,191,36,0.2)',
-                                            color: project.status === 'active' ? '#34d399' : '#fbbf24',
+                                            bgcolor: project.status.toLowerCase() === 'active' ? 'rgba(52,211,153,0.2)' : 'rgba(251,191,36,0.2)',
+                                            color: project.status.toLowerCase() === 'active' ? '#34d399' : '#fbbf24',
                                             fontWeight: 600,
                                             fontSize: '0.7rem',
+                                            textTransform: 'capitalize'
                                         }}
                                     />
                                 </Box>
                                 <Chip label={project.role} size="small" sx={{ bgcolor: 'rgba(168,85,247,0.2)', color: '#c084fc' }} />
                             </Stack>
 
-                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)', mb: 2, minHeight: 40 }}>
-                                {project.description.slice(0, 60)}...
+                            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2, minHeight: 40, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                {project.description}
                             </Typography>
 
                             <Box sx={{ mb: 2 }}>
                                 <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-                                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                         Sprint {project.currentSprint}/{project.totalSprints}
                                     </Typography>
-                                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                         {project.progress}%
                                     </Typography>
                                 </Stack>
@@ -392,7 +460,7 @@ function MyProjects() {
                                     sx={{
                                         height: 6,
                                         borderRadius: 3,
-                                        bgcolor: 'rgba(255,255,255,0.1)',
+                                        bgcolor: 'action.hover',
                                         '& .MuiLinearProgress-bar': {
                                             borderRadius: 3,
                                             background: 'linear-gradient(90deg, #a855f7, #6366f1)',
@@ -403,13 +471,13 @@ function MyProjects() {
 
                             <Stack direction="row" justifyContent="space-between" alignItems="center">
                                 <AvatarGroup max={4} sx={{ '& .MuiAvatar-root': { width: 28, height: 28, fontSize: '0.75rem', bgcolor: '#6366f1' } }}>
-                                    {project.teamAvatars.map((_, i) => (
-                                        <Avatar key={i}>{String.fromCharCode(65 + i)}</Avatar>
+                                    {project.teamAvatars.map((_: any, i: number) => (
+                                        <Avatar key={i} />
                                     ))}
                                 </AvatarGroup>
                                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                                    <CalendarToday sx={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }} />
-                                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)' }}>
+                                    <CalendarToday sx={{ fontSize: 14, color: 'text.secondary' }} />
+                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                         {project.dueDate}
                                     </Typography>
                                 </Stack>
@@ -437,9 +505,11 @@ function UpcomingTasks() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
             sx={{
-                background: 'rgba(20, 20, 40, 0.6)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: '20px',
+                bgcolor: 'background.paper',
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 4,
+                boxShadow: 1,
                 p: 3,
                 height: '100%',
             }}
@@ -448,7 +518,7 @@ function UpcomingTasks() {
                 <Box sx={{ p: 1, borderRadius: '10px', bgcolor: 'rgba(96,165,250,0.2)' }}>
                     <Assignment sx={{ color: '#60a5fa' }} />
                 </Box>
-                <Typography variant="h6" fontWeight="700" sx={{ color: '#fff' }}>
+                <Typography variant="h6" fontWeight="700" sx={{ color: 'text.primary' }}>
                     Upcoming Tasks
                 </Typography>
             </Stack>
@@ -456,16 +526,20 @@ function UpcomingTasks() {
             <Stack spacing={1.5}>
                 {upcomingTasks.map((task) => (
                     <Box key={task.id} sx={{
-                        bgcolor: 'rgba(0,0,0,0.2)',
-                        borderRadius: '10px',
+                        bgcolor: 'background.default',
+                        borderRadius: 3,
                         p: 2,
                         borderLeft: `3px solid ${getPriorityColor(task.priority)}`,
+                        border: 1,
+                        borderColor: 'divider',
+                        borderLeftWidth: 3,
+                        borderLeftColor: getPriorityColor(task.priority),
                     }}>
-                        <Typography variant="body2" fontWeight="600" sx={{ color: '#fff', mb: 0.5 }}>
+                        <Typography variant="body2" fontWeight="600" sx={{ color: 'text.primary', mb: 0.5 }}>
                             {task.title}
                         </Typography>
                         <Stack direction="row" justifyContent="space-between" alignItems="center">
-                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                 {task.project}
                             </Typography>
                             <Chip
@@ -518,7 +592,7 @@ function ActivityFeed() {
                 <Box sx={{ p: 1, borderRadius: '10px', bgcolor: 'rgba(52,211,153,0.2)' }}>
                     <Chat sx={{ color: '#34d399' }} />
                 </Box>
-                <Typography variant="h6" fontWeight="700" sx={{ color: '#fff' }}>
+                <Typography variant="h6" fontWeight="700" sx={{ color: 'text.primary' }}>
                     Team Activity
                 </Typography>
             </Stack>
@@ -531,12 +605,12 @@ function ActivityFeed() {
                                 {activity.user.split(' ').map(n => n[0]).join('')}
                             </Avatar>
                             <Box sx={{ flex: 1 }}>
-                                <Typography variant="body2" sx={{ color: '#fff' }}>
+                                <Typography variant="body2" sx={{ color: 'text.primary' }}>
                                     <strong>{activity.user}</strong>{' '}
-                                    <span style={{ color: 'rgba(255,255,255,0.5)' }}>{activity.action}</span>{' '}
+                                    <span style={{ color: 'text.secondary' }}>{activity.action}</span>{' '}
                                     <span style={{ color: '#a855f7' }}>{activity.target}</span>
                                 </Typography>
-                                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)' }}>
+                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                     {activity.project} • {activity.time}
                                 </Typography>
                             </Box>
@@ -552,7 +626,7 @@ function AIQuickActions() {
     const router = useRouter();
 
     const actions = [
-        { icon: <Groups />, label: 'Find Teammates', desc: 'AI matches you with developers', color: '#a855f7', href: '/projects/new' },
+        { icon: <Groups />, label: 'Find Teammates', desc: 'AI matches you with developers', color: '#a855f7', href: '/projects?filter=created' },
         { icon: <AutoAwesome />, label: 'Generate Roadmap', desc: 'Create project plan with AI', color: '#f472b6', href: '/projects' },
         { icon: <Explore />, label: 'Explore Projects', desc: 'Browse open projects', color: '#60a5fa', href: '/projects' },
     ];
@@ -567,14 +641,14 @@ function AIQuickActions() {
                 <Box sx={{ p: 1, borderRadius: '10px', bgcolor: 'rgba(168,85,247,0.2)' }}>
                     <AutoAwesome sx={{ color: '#a855f7' }} />
                 </Box>
-                <Typography variant="h6" fontWeight="700" sx={{ color: '#fff' }}>
+                <Typography variant="h6" fontWeight="700" sx={{ color: 'text.primary' }}>
                     AI Quick Actions
                 </Typography>
             </Stack>
 
             <Grid container spacing={2}>
                 {actions.map((action) => (
-                    <Grid item xs={12} sm={4} key={action.label}>
+                    <Grid size={{ xs: 12, sm: 4 }} key={action.label}>
                         <Box
                             onClick={() => router.push(action.href)}
                             sx={{
@@ -593,10 +667,10 @@ function AIQuickActions() {
                             }}
                         >
                             <Box sx={{ color: action.color, mb: 1.5 }}>{action.icon}</Box>
-                            <Typography variant="subtitle2" fontWeight="700" sx={{ color: '#fff', mb: 0.5 }}>
+                            <Typography variant="subtitle2" fontWeight="700" sx={{ color: 'text.primary', mb: 0.5 }}>
                                 {action.label}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                 {action.desc}
                             </Typography>
                         </Box>
@@ -614,10 +688,12 @@ function DiscoverProjects() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
             sx={{
-                background: 'rgba(20, 20, 40, 0.6)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: '20px',
+                bgcolor: 'background.paper',
+                borderRadius: 4,
                 p: 3,
+                boxShadow: 1,
+                border: 1,
+                borderColor: 'divider',
             }}
         >
             <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
@@ -625,7 +701,7 @@ function DiscoverProjects() {
                     <Box sx={{ p: 1, borderRadius: '10px', bgcolor: 'rgba(251,191,36,0.2)' }}>
                         <Explore sx={{ color: '#fbbf24' }} />
                     </Box>
-                    <Typography variant="h6" fontWeight="700" sx={{ color: '#fff' }}>
+                    <Typography variant="h6" fontWeight="700" sx={{ color: 'text.primary' }}>
                         Discover Projects
                     </Typography>
                 </Stack>
@@ -639,16 +715,18 @@ function DiscoverProjects() {
 
             <Grid container spacing={2}>
                 {discoverProjects.map((project) => (
-                    <Grid item xs={12} md={4} key={project.id}>
+                    <Grid size={{ xs: 12, md: 4 }} key={project.id}>
                         <Box sx={{
-                            bgcolor: 'rgba(0,0,0,0.2)',
-                            borderRadius: '12px',
+                            bgcolor: 'background.default',
+                            borderRadius: 3,
                             p: 2.5,
                             cursor: 'pointer',
                             transition: 'all 0.3s ease',
-                            '&:hover': { bgcolor: 'rgba(0,0,0,0.3)' },
+                            border: 1,
+                            borderColor: 'divider',
+                            '&:hover': { bgcolor: 'action.hover' },
                         }}>
-                            <Typography variant="subtitle2" fontWeight="700" sx={{ color: '#fff', mb: 1 }}>
+                            <Typography variant="subtitle2" fontWeight="700" sx={{ color: 'text.primary', mb: 1 }}>
                                 {project.name}
                             </Typography>
                             <Chip label={project.category} size="small" sx={{ bgcolor: 'rgba(251,191,36,0.15)', color: '#fbbf24', mb: 1.5, fontSize: '0.65rem' }} />
@@ -662,7 +740,7 @@ function DiscoverProjects() {
                                     }} />
                                 ))}
                             </Stack>
-                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                 Looking for <strong style={{ color: '#fbbf24' }}>{project.looking} teammates</strong>
                             </Typography>
                         </Box>
@@ -679,7 +757,7 @@ export default function DashboardPage() {
     return (
         <Box sx={{
             minHeight: '100vh',
-            background: 'linear-gradient(180deg, #0a0a1a 0%, #12122a 50%, #1a1a2e 100%)',
+            bgcolor: 'background.default',
         }}>
             <DashboardNav />
 
@@ -690,10 +768,10 @@ export default function DashboardPage() {
                     animate={{ opacity: 1, y: 0 }}
                     sx={{ mb: 4 }}
                 >
-                    <Typography variant="h4" fontWeight="800" sx={{ color: '#fff', mb: 0.5 }}>
+                    <Typography variant="h4" fontWeight="800" sx={{ color: 'text.primary', mb: 0.5 }}>
                         Welcome back, {currentUser.name}! 👋
                     </Typography>
-                    <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                    <Typography variant="body1" sx={{ color: 'text.secondary' }}>
                         Here's what's happening with your projects today.
                     </Typography>
                 </MotionBox>
@@ -715,10 +793,10 @@ export default function DashboardPage() {
 
                 {/* Tasks + Activity Row */}
                 <Grid container spacing={3} sx={{ mb: 4 }}>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <UpcomingTasks />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <ActivityFeed />
                     </Grid>
                 </Grid>
