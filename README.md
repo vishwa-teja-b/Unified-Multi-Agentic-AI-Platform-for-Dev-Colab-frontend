@@ -1,4 +1,4 @@
-# 🎨 Unified Multi-Agent AI Platform — Frontend
+# 👨‍💻 Dev Colab — Frontend
 
 <div align="center">
 
@@ -7,7 +7,7 @@
 ![MUI](https://img.shields.io/badge/MUI-007FFF?style=for-the-badge&logo=mui&logoColor=white)
 ![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white)
 
-**A modern, responsive frontend for developer collaboration, featuring AI-powered tools and real-time interactions.**
+**A modern, AI-powered collaboration platform for developers.**
 
 </div>
 
@@ -22,19 +22,25 @@
 
 ### 📊 Dashboard
 - **Real-time Data** — Fetches user's projects from the backend API.
-- **Project Stats** — Visualizes project progress, sprint status, and team size (currently simulated).
+- **Project Stats** — Visualizes project progress, sprint status, and team size.
 - **Empty States** — Guides new users to create their first project.
 
 ### 🚀 Projects & AI Planning
 - **Create Project** — Multi-step wizard to define project scope and requirements.
 - **AI Project Planner** (New!) — Generates detailed roadmaps with sprints and tasks.
-- **Kanban Board** — Drag-and-drop task management (visualizing generated tasks).
+- **Semantic Search** (New!) — Find projects using natural language queries (e.g., "chat app with AI") via Pinecone vectors.
+- **Kanban Board** — Drag-and-drop task management.
 - **Roadmap View** — Timeline view of project milestones.
 
 ### 👥 Team Collaboration
 - **Team Formation** — AI-powered teammate recommendations based on skills.
 - **Invitations** — Send and receive team invitations.
 - **Join Requests** — Browse projects and request to join.
+
+### 💻 Live Sessions
+- **Coding Rooms** — Dedicated workspace for active projects.
+- **Real-time Code Execution** — Run code directly in the browser (powered by Piston).
+- **Cinema Mode** — Immersive "Smoky Deep Gold Frost" UI for focused work.
 
 ---
 
@@ -63,6 +69,7 @@ frontend/
 │   │   │   └── create/         # Project creation wizard
 │   │   ├── profile/            # User profile management
 │   │   ├── invitations/        # Team invitations
+│   │   ├── sessions/           # Live coding sessions
 │   │   └── layout.tsx          # Root layout & providers
 │   │
 │   ├── components/
@@ -120,6 +127,7 @@ frontend/
 | `/projects/create` | Create a new project |
 | `/projects/[id]` | Project details & roadmap |
 | `/profile` | User profile |
+| `/sessions` | Live coding sessions |
 
 ---
 

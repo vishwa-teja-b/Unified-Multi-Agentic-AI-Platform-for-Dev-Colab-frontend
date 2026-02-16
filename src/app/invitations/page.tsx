@@ -16,6 +16,7 @@ import {
     Snackbar,
     IconButton,
     Divider,
+    Paper,
 } from '@mui/material';
 import {
     ArrowBack,
@@ -25,12 +26,17 @@ import {
     Close,
     AccessTime,
     Folder,
+    Inbox,
+    History,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { projectApi, InvitationResponse } from '@/utils/projectApi';
+import { TopBar } from '@/components/shared/TopBar';
+import { DistortedBackground } from '@/components/shared/DistortedBackground';
 
 const MotionBox = motion(Box);
+const GOLD = '#D4AF37';
 
 function timeAgo(dateStr: string): string {
     const now = new Date();
@@ -56,7 +62,7 @@ function getStatusChip(status: string) {
         <Chip
             label={status}
             size="small"
-            sx={{ bgcolor: s.bg, color: s.color, fontWeight: 600, fontSize: '0.7rem' }}
+            sx={{ bgcolor: s.bg, color: s.color, fontWeight: 700, fontSize: '0.7rem', borderRadius: '6px' }}
         />
     );
 }
@@ -131,164 +137,165 @@ export default function InvitationsPage() {
     return (
         <Box sx={{
             minHeight: '100vh',
-            background: 'linear-gradient(180deg, #0a0a1a 0%, #12122a 50%, #1a1a2e 100%)',
+            bgcolor: '#050505',
+            color: 'white',
+            overflowX: 'hidden',
+            position: 'relative',
         }}>
-            {/* Header */}
-            <Box sx={{
-                bgcolor: 'rgba(10, 10, 26, 0.95)',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                backdropFilter: 'blur(20px)',
-                position: 'sticky',
-                top: 0,
-                zIndex: 100,
-            }}>
+            <DistortedBackground />
+            <TopBar />
+
+            <Box sx={{ pt: '120px', pb: 8, position: 'relative', zIndex: 10 }}>
                 <Container maxWidth="lg">
-                    <Stack direction="row" alignItems="center" spacing={2} sx={{ height: 64 }}>
-                        <IconButton onClick={() => router.push('/dashboard')} sx={{ color: 'rgba(255,255,255,0.6)' }}>
-                            <ArrowBack />
-                        </IconButton>
-                        <Typography variant="h6" fontWeight="700" sx={{ color: '#fff' }}>
+                    {/* Header */}
+                    <Box sx={{ mb: 5 }}>
+                        <Typography variant="h3" fontWeight="800" sx={{ letterSpacing: '-0.02em', mb: 0.5, fontFamily: 'Space Grotesk', color: 'white' }}>
                             Invitations & Requests
                         </Typography>
-                    </Stack>
-                </Container>
-            </Box>
-
-            <Container maxWidth="lg" sx={{ py: 4 }}>
-                {/* Tabs */}
-                <Tabs
-                    value={tab}
-                    onChange={(_, v) => setTab(v)}
-                    sx={{
-                        mb: 4,
-                        '& .MuiTab-root': {
-                            color: 'rgba(255,255,255,0.5)',
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            fontSize: '1rem',
-                            '&.Mui-selected': { color: '#a855f7' },
-                        },
-                        '& .MuiTabs-indicator': { bgcolor: '#a855f7' },
-                    }}
-                >
-                    <Tab
-                        icon={<Mail sx={{ fontSize: 20 }} />}
-                        iconPosition="start"
-                        label={
-                            <Stack direction="row" alignItems="center" spacing={1}>
-                                <span>Received Invitations</span>
-                                {pendingInvitations.length > 0 && (
-                                    <Chip label={pendingInvitations.length} size="small"
-                                        sx={{ bgcolor: '#f472b6', color: '#fff', fontWeight: 700, height: 20, fontSize: '0.7rem' }} />
-                                )}
-                            </Stack>
-                        }
-                    />
-                    <Tab
-                        icon={<PersonAdd sx={{ fontSize: 20 }} />}
-                        iconPosition="start"
-                        label={
-                            <Stack direction="row" alignItems="center" spacing={1}>
-                                <span>Join Requests</span>
-                                {pendingJoinRequests.length > 0 && (
-                                    <Chip label={pendingJoinRequests.length} size="small"
-                                        sx={{ bgcolor: '#60a5fa', color: '#fff', fontWeight: 700, height: 20, fontSize: '0.7rem' }} />
-                                )}
-                            </Stack>
-                        }
-                    />
-                </Tabs>
-
-                {loading ? (
-                    <Box sx={{ textAlign: 'center', py: 8 }}>
-                        <CircularProgress sx={{ color: '#a855f7' }} />
+                        <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                            Manage your project invitations and review join requests.
+                        </Typography>
                     </Box>
-                ) : error ? (
-                    <Alert severity="error" action={<Button color="inherit" size="small" onClick={fetchData}>Retry</Button>}>
-                        {error}
+
+                    {/* Tabs */}
+                    <Tabs
+                        value={tab}
+                        onChange={(_, v) => setTab(v)}
+                        sx={{
+                            mb: 4,
+                            '& .MuiTab-root': {
+                                color: 'rgba(255,255,255,0.5)',
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                fontSize: '1rem',
+                                fontFamily: 'Space Grotesk',
+                                '&.Mui-selected': { color: GOLD },
+                            },
+                            '& .MuiTabs-indicator': { bgcolor: GOLD, height: 3, borderRadius: '3px 3px 0 0' },
+                        }}
+                    >
+                        <Tab
+                            icon={<Mail sx={{ fontSize: 20 }} />}
+                            iconPosition="start"
+                            label={
+                                <Stack direction="row" alignItems="center" spacing={1}>
+                                    <span>Received Invitations</span>
+                                    {pendingInvitations.length > 0 && (
+                                        <Chip label={pendingInvitations.length} size="small"
+                                            sx={{ bgcolor: '#fbbf24', color: 'black', fontWeight: 700, height: 20, fontSize: '0.7rem' }} />
+                                    )}
+                                </Stack>
+                            }
+                        />
+                        <Tab
+                            icon={<PersonAdd sx={{ fontSize: 20 }} />}
+                            iconPosition="start"
+                            label={
+                                <Stack direction="row" alignItems="center" spacing={1}>
+                                    <span>Join Requests</span>
+                                    {pendingJoinRequests.length > 0 && (
+                                        <Chip label={pendingJoinRequests.length} size="small"
+                                            sx={{ bgcolor: '#60a5fa', color: 'white', fontWeight: 700, height: 20, fontSize: '0.7rem' }} />
+                                    )}
+                                </Stack>
+                            }
+                        />
+                    </Tabs>
+
+                    {loading ? (
+                        <Box sx={{ textAlign: 'center', py: 8 }}>
+                            <CircularProgress sx={{ color: GOLD }} />
+                        </Box>
+                    ) : error ? (
+                        <Alert severity="error" action={<Button color="inherit" size="small" onClick={fetchData}>Retry</Button>}
+                            sx={{ bgcolor: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
+                            {error}
+                        </Alert>
+                    ) : (
+                        <>
+                            {/* Tab 0: Received Invitations */}
+                            {tab === 0 && (
+                                <AnimatePresence>
+                                    {invitations.length === 0 ? (
+                                        <EmptyState icon={<Mail />} title="No invitations yet" subtitle="When someone invites you to their project, it'll show up here." />
+                                    ) : (
+                                        <Stack spacing={3}>
+                                            {pendingInvitations.length > 0 && (
+                                                <SectionLabel label="Pending" count={pendingInvitations.length} color="#fbbf24" />
+                                            )}
+                                            {pendingInvitations.map((inv, i) => (
+                                                <InvitationCard
+                                                    key={inv.id}
+                                                    item={inv}
+                                                    index={i}
+                                                    type="invitation"
+                                                    actionLoading={actionLoading}
+                                                    onAccept={() => handleInvitationResponse(inv.id, 'ACCEPTED')}
+                                                    onReject={() => handleInvitationResponse(inv.id, 'REJECTED')}
+                                                />
+                                            ))}
+                                            {pastInvitations.length > 0 && (
+                                                <>
+                                                    <SectionLabel label="Past" count={pastInvitations.length} color="rgba(255,255,255,0.4)" />
+                                                    {pastInvitations.map((inv, i) => (
+                                                        <InvitationCard key={inv.id} item={inv} index={i} type="invitation" actionLoading={actionLoading} />
+                                                    ))}
+                                                </>
+                                            )}
+                                        </Stack>
+                                    )}
+                                </AnimatePresence>
+                            )}
+
+                            {/* Tab 1: Join Requests (as project owner) */}
+                            {tab === 1 && (
+                                <AnimatePresence>
+                                    {joinRequests.length === 0 ? (
+                                        <EmptyState icon={<PersonAdd />} title="No join requests" subtitle="When someone requests to join your project, it'll appear here." />
+                                    ) : (
+                                        <Stack spacing={3}>
+                                            {pendingJoinRequests.length > 0 && (
+                                                <SectionLabel label="Pending Review" count={pendingJoinRequests.length} color="#60a5fa" />
+                                            )}
+                                            {pendingJoinRequests.map((req, i) => (
+                                                <InvitationCard
+                                                    key={req.id}
+                                                    item={req}
+                                                    index={i}
+                                                    type="join_request"
+                                                    actionLoading={actionLoading}
+                                                    onAccept={() => handleJoinRequestResponse(req.id, 'ACCEPTED')}
+                                                    onReject={() => handleJoinRequestResponse(req.id, 'REJECTED')}
+                                                />
+                                            ))}
+                                            {pastJoinRequests.length > 0 && (
+                                                <>
+                                                    <SectionLabel label="Past" count={pastJoinRequests.length} color="rgba(255,255,255,0.4)" />
+                                                    {pastJoinRequests.map((req, i) => (
+                                                        <InvitationCard key={req.id} item={req} index={i} type="join_request" actionLoading={actionLoading} />
+                                                    ))}
+                                                </>
+                                            )}
+                                        </Stack>
+                                    )}
+                                </AnimatePresence>
+                            )}
+                        </>
+                    )}
+                </Container>
+
+                <Snackbar
+                    open={snackbar.open}
+                    autoHideDuration={4000}
+                    onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                >
+                    <Alert severity={snackbar.severity} variant="filled" onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+                        sx={{ borderRadius: 2 }}>
+                        {snackbar.message}
                     </Alert>
-                ) : (
-                    <>
-                        {/* Tab 0: Received Invitations */}
-                        {tab === 0 && (
-                            <AnimatePresence>
-                                {invitations.length === 0 ? (
-                                    <EmptyState icon={<Mail />} title="No invitations yet" subtitle="When someone invites you to their project, it'll show up here." />
-                                ) : (
-                                    <Stack spacing={3}>
-                                        {pendingInvitations.length > 0 && (
-                                            <SectionLabel label="Pending" count={pendingInvitations.length} color="#fbbf24" />
-                                        )}
-                                        {pendingInvitations.map((inv, i) => (
-                                            <InvitationCard
-                                                key={inv.id}
-                                                item={inv}
-                                                index={i}
-                                                type="invitation"
-                                                actionLoading={actionLoading}
-                                                onAccept={() => handleInvitationResponse(inv.id, 'ACCEPTED')}
-                                                onReject={() => handleInvitationResponse(inv.id, 'REJECTED')}
-                                            />
-                                        ))}
-                                        {pastInvitations.length > 0 && (
-                                            <>
-                                                <SectionLabel label="Past" count={pastInvitations.length} color="rgba(255,255,255,0.4)" />
-                                                {pastInvitations.map((inv, i) => (
-                                                    <InvitationCard key={inv.id} item={inv} index={i} type="invitation" actionLoading={actionLoading} />
-                                                ))}
-                                            </>
-                                        )}
-                                    </Stack>
-                                )}
-                            </AnimatePresence>
-                        )}
-
-                        {/* Tab 1: Join Requests (as project owner) */}
-                        {tab === 1 && (
-                            <AnimatePresence>
-                                {joinRequests.length === 0 ? (
-                                    <EmptyState icon={<PersonAdd />} title="No join requests" subtitle="When someone requests to join your project, it'll appear here." />
-                                ) : (
-                                    <Stack spacing={3}>
-                                        {pendingJoinRequests.length > 0 && (
-                                            <SectionLabel label="Pending Review" count={pendingJoinRequests.length} color="#60a5fa" />
-                                        )}
-                                        {pendingJoinRequests.map((req, i) => (
-                                            <InvitationCard
-                                                key={req.id}
-                                                item={req}
-                                                index={i}
-                                                type="join_request"
-                                                actionLoading={actionLoading}
-                                                onAccept={() => handleJoinRequestResponse(req.id, 'ACCEPTED')}
-                                                onReject={() => handleJoinRequestResponse(req.id, 'REJECTED')}
-                                            />
-                                        ))}
-                                        {pastJoinRequests.length > 0 && (
-                                            <>
-                                                <SectionLabel label="Past" count={pastJoinRequests.length} color="rgba(255,255,255,0.4)" />
-                                                {pastJoinRequests.map((req, i) => (
-                                                    <InvitationCard key={req.id} item={req} index={i} type="join_request" actionLoading={actionLoading} />
-                                                ))}
-                                            </>
-                                        )}
-                                    </Stack>
-                                )}
-                            </AnimatePresence>
-                        )}
-                    </>
-                )}
-            </Container>
-
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={4000}
-                onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-            >
-                <Alert severity={snackbar.severity} variant="filled" onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
+                </Snackbar>
+            </Box>
         </Box>
     );
 }
@@ -300,22 +307,28 @@ function EmptyState({ icon, title, subtitle }: { icon: React.ReactNode; title: s
         <MotionBox
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            sx={{ textAlign: 'center', py: 10 }}
+            sx={{
+                textAlign: 'center',
+                py: 10,
+                borderRadius: 4,
+                bgcolor: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.05)',
+            }}
         >
-            <Box sx={{ color: 'rgba(255,255,255,0.15)', mb: 2, '& .MuiSvgIcon-root': { fontSize: 56 } }}>{icon}</Box>
-            <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.6)', mb: 0.5 }}>{title}</Typography>
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.35)' }}>{subtitle}</Typography>
+            <Box sx={{ color: 'rgba(255,255,255,0.1)', mb: 2, '& .MuiSvgIcon-root': { fontSize: 56 } }}>{icon}</Box>
+            <Typography variant="h6" sx={{ color: 'white', mb: 0.5, fontFamily: 'Space Grotesk' }}>{title}</Typography>
+            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)' }}>{subtitle}</Typography>
         </MotionBox>
     );
 }
 
 function SectionLabel({ label, count, color }: { label: string; count: number; color: string }) {
     return (
-        <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Typography variant="subtitle2" fontWeight="700" sx={{ color, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mt: 2, mb: 1 }}>
+            <Typography variant="subtitle2" fontWeight="700" sx={{ color, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'Space Grotesk' }}>
                 {label}
             </Typography>
-            <Chip label={count} size="small" sx={{ bgcolor: `${color}20`, color, fontWeight: 700, height: 20, fontSize: '0.65rem' }} />
+            <Chip label={count} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 700, height: 20, fontSize: '0.65rem' }} />
         </Stack>
     );
 }
@@ -340,13 +353,18 @@ function InvitationCard({ item, index, type, actionLoading, onAccept, onReject }
             exit={{ opacity: 0, x: -50 }}
             transition={{ delay: index * 0.05 }}
             sx={{
-                bgcolor: 'rgba(20, 20, 40, 0.6)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                bgcolor: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.05)',
+                backdropFilter: 'blur(10px)',
                 borderRadius: '16px',
                 p: 3,
                 opacity: isPending ? 1 : 0.6,
                 transition: 'all 0.3s ease',
-                '&:hover': { borderColor: isPending ? 'rgba(168,85,247,0.3)' : 'rgba(255,255,255,0.12)' },
+                '&:hover': {
+                    borderColor: GOLD,
+                    bgcolor: 'rgba(255,255,255,0.05)',
+                    boxShadow: `0 0 20px rgba(212, 175, 55, 0.1)`,
+                },
             }}
         >
             <Stack
@@ -358,15 +376,17 @@ function InvitationCard({ item, index, type, actionLoading, onAccept, onReject }
                 <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
                     <Avatar sx={{
                         width: 48, height: 48,
-                        bgcolor: type === 'invitation' ? '#6366f1' : '#3b82f6',
+                        bgcolor: 'rgba(255,255,255,0.05)',
+                        color: type === 'invitation' ? '#a855f7' : '#60a5fa',
                         fontSize: '1.1rem', fontWeight: 600,
+                        border: '1px solid rgba(255,255,255,0.1)'
                     }}>
                         {type === 'invitation' ? <Mail /> : <PersonAdd />}
                     </Avatar>
 
                     <Box sx={{ flex: 1 }}>
                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-                            <Typography variant="subtitle1" fontWeight="700" sx={{ color: '#fff' }}>
+                            <Typography variant="subtitle1" fontWeight="700" sx={{ color: 'white', fontFamily: 'Space Grotesk' }}>
                                 {item.project_title || 'Untitled Project'}
                             </Typography>
                             {getStatusChip(item.status)}
@@ -374,8 +394,8 @@ function InvitationCard({ item, index, type, actionLoading, onAccept, onReject }
 
                         <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)', mb: 0.5 }}>
                             {type === 'invitation'
-                                ? <>Role: <strong style={{ color: '#c084fc' }}>{item.role}</strong></>
-                                : <>Requesting as <strong style={{ color: '#60a5fa' }}>{item.role}</strong> • User #{item.sender_id}</>
+                                ? <>Role: <strong style={{ color: 'white' }}>{item.role}</strong></>
+                                : <>Requesting as <strong style={{ color: 'white' }}>{item.role}</strong> • User #{item.sender_id}</>
                             }
                         </Typography>
 
@@ -402,12 +422,14 @@ function InvitationCard({ item, index, type, actionLoading, onAccept, onReject }
                             startIcon={isLoading ? <CircularProgress size={14} color="inherit" /> : <Check />}
                             disabled={isLoading}
                             onClick={onAccept}
+                            disableElevation
                             sx={{
-                                bgcolor: '#34d399',
-                                color: '#000',
+                                bgcolor: '#16a34a',
+                                color: 'white',
                                 fontWeight: 600,
                                 textTransform: 'none',
-                                '&:hover': { bgcolor: '#22c55e' },
+                                borderRadius: '8px',
+                                '&:hover': { bgcolor: '#15803d' },
                             }}
                         >
                             Accept
@@ -422,6 +444,7 @@ function InvitationCard({ item, index, type, actionLoading, onAccept, onReject }
                                 borderColor: 'rgba(255,255,255,0.2)',
                                 color: 'rgba(255,255,255,0.7)',
                                 textTransform: 'none',
+                                borderRadius: '8px',
                                 '&:hover': { borderColor: '#ef4444', color: '#ef4444' },
                             }}
                         >

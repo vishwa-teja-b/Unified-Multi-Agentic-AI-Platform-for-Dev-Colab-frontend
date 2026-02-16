@@ -6,19 +6,13 @@ import {
     Stack,
     Chip,
     IconButton,
-    Collapse,
-    Divider,
     Tabs,
     Tab,
 } from '@mui/material';
 import {
-    KeyboardArrowDown,
-    KeyboardArrowUp,
-    CheckCircle,
     AccessTime,
     Person,
     Flag,
-    Assignment,
     ViewKanban,
     List as ListIcon
 } from '@mui/icons-material';
@@ -28,77 +22,109 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface RoadmapViewProps {
     roadmap: Sprint[];
     extractedFeatures: string[];
+    onTaskMove?: (taskId: string, newStatus: string) => void;
 }
 
 const MotionPaper = motion(Paper);
 
-export default function RoadmapView({ roadmap, extractedFeatures }: RoadmapViewProps) {
+const getPriorityColor = (priority?: string) => {
+    switch (priority?.toLowerCase()) {
+        case 'high': return 'error';
+        case 'medium': return 'warning';
+        case 'low': return 'success';
+        default: return 'default';
+    }
+};
+
+const TaskCard = ({ task, onTaskMove, draggedTaskId, onDragStart }: {
+    task: Task;
+    onTaskMove?: (taskId: string, newStatus: string) => void;
+    draggedTaskId: string | null;
+    onDragStart: (e: React.DragEvent, taskId: string) => void;
+}) => (
+    <MotionPaper
+        layout
+        draggable={!!onTaskMove}
+        onDragStart={(e) => onDragStart(e as unknown as React.DragEvent, task.id)}
+        elevation={0}
+        sx={{
+            p: 2,
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            bgcolor: 'background.paper',
+            mb: 1.5,
+            cursor: onTaskMove ? 'grab' : 'default',
+            '&:active': { cursor: onTaskMove ? 'grabbing' : 'default' },
+            opacity: draggedTaskId === task.id ? 0.5 : 1
+        }}
+    >
+        <Stack spacing={1}>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                <Typography variant="subtitle2" fontWeight="600" sx={{ lineHeight: 1.3 }}>
+                    {task.title}
+                </Typography>
+                <Chip
+                    label={task.priority}
+                    size="small"
+                    color={getPriorityColor(task.priority)}
+                    variant="outlined"
+                    sx={{ height: 20, fontSize: '0.65rem' }}
+                />
+            </Stack>
+            {task.description && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                    {task.description}
+                </Typography>
+            )}
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+                {task.assignee && (
+                    <Stack direction="row" alignItems="center" spacing={0.5}>
+                        <Person sx={{ fontSize: 14, color: 'text.secondary' }} />
+                        <Typography variant="caption" color="text.secondary">
+                            {task.assignee}
+                        </Typography>
+                    </Stack>
+                )}
+                {task.estimate && (
+                    <Stack direction="row" alignItems="center" spacing={0.5}>
+                        <AccessTime sx={{ fontSize: 14, color: 'text.secondary' }} />
+                        <Typography variant="caption" color="text.secondary">
+                            {task.estimate}
+                        </Typography>
+                    </Stack>
+                )}
+            </Stack>
+        </Stack>
+    </MotionPaper>
+);
+
+export default function RoadmapView({ roadmap, extractedFeatures, onTaskMove }: RoadmapViewProps) {
     const [selectedSprintIndex, setSelectedSprintIndex] = useState(0);
     const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+    const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
 
     const currentSprint = roadmap[selectedSprintIndex];
 
-    const getPriorityColor = (priority?: string) => {
-        switch (priority?.toLowerCase()) {
-            case 'high': return 'error';
-            case 'medium': return 'warning';
-            case 'low': return 'success';
-            default: return 'default';
-        }
+    const handleDragStart = (e: React.DragEvent, taskId: string) => {
+        e.dataTransfer.setData('taskId', taskId);
+        e.dataTransfer.effectAllowed = 'move';
+        setDraggedTaskId(taskId);
     };
 
-    const TaskCard = ({ task }: { task: Task }) => (
-        <MotionPaper
-            layout
-            elevation={0}
-            sx={{
-                p: 2,
-                borderRadius: 2,
-                border: '1px solid',
-                borderColor: 'divider',
-                bgcolor: 'background.paper',
-                mb: 1.5
-            }}
-        >
-            <Stack spacing={1}>
-                <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                    <Typography variant="subtitle2" fontWeight="600" sx={{ lineHeight: 1.3 }}>
-                        {task.title}
-                    </Typography>
-                    <Chip
-                        label={task.priority}
-                        size="small"
-                        color={getPriorityColor(task.priority)}
-                        variant="outlined"
-                        sx={{ height: 20, fontSize: '0.65rem' }}
-                    />
-                </Stack>
-                {task.description && (
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                        {task.description}
-                    </Typography>
-                )}
-                <Stack direction="row" alignItems="center" spacing={1.5}>
-                    {task.assignee && (
-                        <Stack direction="row" alignItems="center" spacing={0.5}>
-                            <Person sx={{ fontSize: 14, color: 'text.secondary' }} />
-                            <Typography variant="caption" color="text.secondary">
-                                {task.assignee}
-                            </Typography>
-                        </Stack>
-                    )}
-                    {task.estimate && (
-                        <Stack direction="row" alignItems="center" spacing={0.5}>
-                            <AccessTime sx={{ fontSize: 14, color: 'text.secondary' }} />
-                            <Typography variant="caption" color="text.secondary">
-                                {task.estimate}
-                            </Typography>
-                        </Stack>
-                    )}
-                </Stack>
-            </Stack>
-        </MotionPaper>
-    );
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDrop = (e: React.DragEvent, status: string) => {
+        e.preventDefault();
+        const taskId = e.dataTransfer.getData('taskId');
+        if (taskId && onTaskMove) {
+            onTaskMove(taskId, status);
+        }
+        setDraggedTaskId(null);
+    };
 
     return (
         <Box sx={{ mt: 3 }}>
@@ -195,7 +221,12 @@ export default function RoadmapView({ roadmap, extractedFeatures }: RoadmapViewP
                     {viewMode === 'kanban' ? (
                         <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
                             {['Todo', 'In Progress', 'Done'].map((status) => (
-                                <Box key={status} sx={{ flex: 1, minWidth: 0 }}>
+                                <Box
+                                    key={status}
+                                    sx={{ flex: 1, minWidth: 0 }}
+                                    onDragOver={handleDragOver}
+                                    onDrop={(e) => handleDrop(e as unknown as React.DragEvent, status)}
+                                >
                                     <Paper
                                         elevation={0}
                                         sx={{
@@ -203,7 +234,13 @@ export default function RoadmapView({ roadmap, extractedFeatures }: RoadmapViewP
                                             bgcolor: 'action.hover',
                                             borderRadius: 3,
                                             height: '100%',
-                                            minHeight: 300
+                                            minHeight: 300,
+                                            transition: 'background-color 0.2s',
+                                            ...(draggedTaskId && {
+                                                border: '1px dashed',
+                                                borderColor: 'primary.main',
+                                                bgcolor: 'action.selected'
+                                            })
                                         }}
                                     >
                                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
@@ -230,7 +267,13 @@ export default function RoadmapView({ roadmap, extractedFeatures }: RoadmapViewP
                                                     return s === status.toLowerCase();
                                                 })
                                                 .map(task => (
-                                                    <TaskCard key={task.id} task={task} />
+                                                    <TaskCard
+                                                        key={task.id}
+                                                        task={task}
+                                                        onTaskMove={onTaskMove}
+                                                        draggedTaskId={draggedTaskId}
+                                                        onDragStart={handleDragStart}
+                                                    />
                                                 ))}
                                         </Stack>
                                     </Paper>
@@ -240,7 +283,13 @@ export default function RoadmapView({ roadmap, extractedFeatures }: RoadmapViewP
                     ) : (
                         <Stack spacing={2}>
                             {currentSprint.tasks.map(task => (
-                                <TaskCard key={task.id} task={task} />
+                                <TaskCard
+                                    key={task.id}
+                                    task={task}
+                                    onTaskMove={onTaskMove}
+                                    draggedTaskId={draggedTaskId}
+                                    onDragStart={handleDragStart}
+                                />
                             ))}
                         </Stack>
                     )}

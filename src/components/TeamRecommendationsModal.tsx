@@ -147,10 +147,11 @@ export default function TeamRecommendationsModal({
                         width: '100%',
                         maxWidth: 900,
                         maxHeight: '90vh',
-                        bgcolor: 'background.paper',
+                        background: 'linear-gradient(135deg, rgba(20, 15, 10, 0.95), rgba(35, 25, 10, 0.90))',
+                        backdropFilter: 'blur(24px)',
                         borderRadius: 3,
-                        boxShadow: 24,
-                        border: 'none',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+                        border: '1px solid rgba(212, 175, 55, 0.15)',
                         outline: 'none',
                         overflow: 'hidden',
                         display: 'flex',
@@ -161,9 +162,8 @@ export default function TeamRecommendationsModal({
                     <Box
                         sx={{
                             p: 3,
-                            borderBottom: 1,
-                            borderColor: 'divider',
-                            bgcolor: 'background.default',
+                            borderBottom: '1px solid rgba(212, 175, 55, 0.1)',
+                            background: 'rgba(20, 15, 10, 0.4)',
                         }}
                     >
                         <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
@@ -172,21 +172,22 @@ export default function TeamRecommendationsModal({
                                     sx={{
                                         p: 1.5,
                                         borderRadius: '12px',
-                                        bgcolor: 'rgba(168,85,247,0.2)',
+                                        bgcolor: 'rgba(212, 175, 55, 0.1)',
+                                        color: '#D4AF37',
                                     }}
                                 >
-                                    <Groups color="primary" sx={{ fontSize: 28 }} />
+                                    <Groups sx={{ fontSize: 28, color: '#D4AF37' }} />
                                 </Box>
                                 <Box>
-                                    <Typography variant="h5" fontWeight="700" sx={{ color: 'text.primary', mb: 0.5 }}>
+                                    <Typography variant="h5" fontWeight="700" sx={{ color: '#FDFDFD', mb: 0.5 }}>
                                         Recommended Team
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                                         For "{projectTitle}"
                                     </Typography>
                                 </Box>
                             </Stack>
-                            <IconButton onClick={onClose} sx={{ color: 'text.secondary' }}>
+                            <IconButton onClick={onClose} sx={{ color: 'rgba(255, 255, 255, 0.5)', '&:hover': { color: '#FFF' } }}>
                                 <Close />
                             </IconButton>
                         </Stack>
@@ -196,7 +197,7 @@ export default function TeamRecommendationsModal({
                     <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
                         {loading ? (
                             <Box sx={{ textAlign: 'center', py: 8 }}>
-                                <CircularProgress sx={{ color: '#a855f7', mb: 2 }} />
+                                <CircularProgress sx={{ color: '#D4AF37', mb: 2 }} />
                                 <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)' }}>
                                     AI is finding the best teammates for your project...
                                 </Typography>
@@ -209,17 +210,17 @@ export default function TeamRecommendationsModal({
                                         Retry
                                     </Button>
                                 }
-                                sx={{ mb: 2 }}
+                                sx={{ mb: 2, bgcolor: 'rgba(239, 68, 68, 0.1)', color: '#ecaeb0' }}
                             >
                                 {error}
                             </Alert>
                         ) : recommendations.length === 0 ? (
                             <Box sx={{ textAlign: 'center', py: 8 }}>
-                                <AutoAwesome sx={{ fontSize: 48, color: 'rgba(255,255,255,0.2)', mb: 2 }} />
-                                <Typography variant="h6" sx={{ color: 'text.secondary', mb: 1 }}>
+                                <AutoAwesome sx={{ fontSize: 48, color: 'rgba(212, 175, 55, 0.2)', mb: 2 }} />
+                                <Typography variant="h6" sx={{ color: 'rgba(255, 255, 255, 0.7)', mb: 1 }}>
                                     No recommendations found
                                 </Typography>
-                                <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+                                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
                                     Try adjusting your project skills or expanding the team size
                                 </Typography>
                             </Box>
@@ -238,14 +239,14 @@ export default function TeamRecommendationsModal({
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: index * 0.1 }}
                                             sx={{
-                                                bgcolor: 'background.default',
-                                                border: 1,
-                                                borderColor: 'divider',
+                                                bgcolor: 'rgba(255, 255, 255, 0.03)',
+                                                border: '1px solid rgba(255, 255, 255, 0.08)',
                                                 borderRadius: 3,
                                                 p: 3,
                                                 '&:hover': {
-                                                    borderColor: 'primary.main',
-                                                    boxShadow: 1,
+                                                    borderColor: '#D4AF37',
+                                                    boxShadow: '0 0 20px rgba(212, 175, 55, 0.1)',
+                                                    bgcolor: 'rgba(255, 255, 255, 0.05)',
                                                 },
                                             }}
                                         >
@@ -262,9 +263,11 @@ export default function TeamRecommendationsModal({
                                                         sx={{
                                                             width: 56,
                                                             height: 56,
-                                                            bgcolor: '#6366f1',
+                                                            bgcolor: 'rgba(212, 175, 55, 0.2)',
+                                                            color: '#D4AF37',
                                                             fontSize: '1.25rem',
                                                             fontWeight: 600,
+                                                            border: '1px solid rgba(212, 175, 55, 0.3)',
                                                         }}
                                                     >
                                                         {(candidate.name || candidate.username || 'U')
@@ -275,11 +278,11 @@ export default function TeamRecommendationsModal({
                                                             .slice(0, 2)}
                                                     </Avatar>
                                                     <Box>
-                                                        <Typography variant="h6" fontWeight="700" sx={{ color: 'text.primary' }}>
+                                                        <Typography variant="h6" fontWeight="700" sx={{ color: '#FDFDFD' }}>
                                                             {candidate.name || candidate.username || 'Unknown'}
                                                         </Typography>
                                                         {candidate.username && (
-                                                            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
+                                                            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.6)', mb: 0.5 }}>
                                                                 @{candidate.username}
                                                             </Typography>
                                                         )}
@@ -287,10 +290,11 @@ export default function TeamRecommendationsModal({
                                                             label={candidate.role}
                                                             size="small"
                                                             sx={{
-                                                                bgcolor: 'action.selected',
-                                                                color: 'primary.main',
+                                                                bgcolor: 'rgba(212, 175, 55, 0.1)',
+                                                                color: '#D4AF37',
                                                                 fontWeight: 600,
                                                                 fontSize: '0.75rem',
+                                                                border: '1px solid rgba(212, 175, 55, 0.2)',
                                                             }}
                                                         />
                                                     </Box>
@@ -298,7 +302,7 @@ export default function TeamRecommendationsModal({
 
                                                 {/* Match Score */}
                                                 <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                    <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
                                                         Match Score
                                                     </Typography>
                                                     <Typography
@@ -318,14 +322,14 @@ export default function TeamRecommendationsModal({
                                                 sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}
                                             >
                                                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                                                    <AccessTime sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                                    <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                                                    <AccessTime sx={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.5)' }} />
+                                                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
                                                         {candidate.availability_hours} hrs/week
                                                     </Typography>
                                                 </Stack>
                                                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                                                    <Public sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                                    <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                                                    <Public sx={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.5)' }} />
+                                                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
                                                         {candidate.timezone}
                                                     </Typography>
                                                     <Chip
@@ -346,7 +350,7 @@ export default function TeamRecommendationsModal({
                                             <Box sx={{ mb: 2 }}>
                                                 <Typography
                                                     variant="caption"
-                                                    sx={{ color: 'text.secondary', mb: 1, display: 'block' }}
+                                                    sx={{ color: 'rgba(255, 255, 255, 0.5)', mb: 1, display: 'block' }}
                                                 >
                                                     Skills
                                                 </Typography>
@@ -357,9 +361,10 @@ export default function TeamRecommendationsModal({
                                                             label={skill}
                                                             size="small"
                                                             sx={{
-                                                                bgcolor: 'action.hover',
-                                                                color: 'text.primary',
+                                                                bgcolor: 'rgba(255, 255, 255, 0.1)',
+                                                                color: 'rgba(255, 255, 255, 0.9)',
                                                                 fontSize: '0.7rem',
+                                                                border: '1px solid rgba(255, 255, 255, 0.1)',
                                                             }}
                                                         />
                                                     ))}
@@ -368,8 +373,8 @@ export default function TeamRecommendationsModal({
                                                             label={`+${skills.length - 6}`}
                                                             size="small"
                                                             sx={{
-                                                                bgcolor: 'action.hover',
-                                                                color: 'text.secondary',
+                                                                bgcolor: 'rgba(255, 255, 255, 0.05)',
+                                                                color: 'rgba(255, 255, 255, 0.5)',
                                                                 fontSize: '0.7rem',
                                                             }}
                                                         />
@@ -381,19 +386,20 @@ export default function TeamRecommendationsModal({
                                             {candidate.reasoning && (
                                                 <Box
                                                     sx={{
-                                                        bgcolor: 'action.hover',
+                                                        bgcolor: 'rgba(20, 15, 10, 0.5)',
                                                         borderRadius: '8px',
+                                                        border: '1px solid rgba(255, 255, 255, 0.05)',
                                                         p: 2,
                                                         mb: 2,
                                                     }}
                                                 >
-                                                    <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                                                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
                                                         <strong>Why:</strong> "{candidate.reasoning}"
                                                     </Typography>
                                                 </Box>
                                             )}
 
-                                            <Divider sx={{ my: 2 }} />
+                                            <Divider sx={{ my: 2, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
 
                                             {/* Actions */}
                                             <Stack direction="row" spacing={2} justifyContent="flex-end">
@@ -402,12 +408,13 @@ export default function TeamRecommendationsModal({
                                                     startIcon={<Visibility />}
                                                     onClick={() => handleViewProfile(candidate.username)}
                                                     sx={{
-                                                        color: 'text.secondary',
-                                                        borderColor: 'divider',
+                                                        color: 'rgba(255, 255, 255, 0.7)',
+                                                        borderColor: 'rgba(255, 255, 255, 0.2)',
                                                         textTransform: 'none',
                                                         '&:hover': {
-                                                            borderColor: 'text.primary',
-                                                            bgcolor: 'action.hover',
+                                                            borderColor: '#FFF',
+                                                            color: '#FFF',
+                                                            bgcolor: 'rgba(255, 255, 255, 0.05)',
                                                         },
                                                     }}
                                                 >
@@ -425,15 +432,15 @@ export default function TeamRecommendationsModal({
                                                     onClick={() => handleSendInvite(candidate)}
                                                     disabled={inviteLoading === candidate.username || sentInvites.has(candidate.username)}
                                                     sx={{
-                                                        bgcolor: sentInvites.has(candidate.username) ? 'success.main' : 'primary.main',
-                                                        color: 'primary.contrastText',
+                                                        bgcolor: sentInvites.has(candidate.username) ? '#22c55e' : '#D4AF37',
+                                                        color: '#000',
                                                         textTransform: 'none',
-                                                        fontWeight: 600,
-                                                        '&:hover': { bgcolor: sentInvites.has(candidate.username) ? 'success.dark' : 'primary.dark' },
-                                                        '&.Mui-disabled': { bgcolor: sentInvites.has(candidate.username) ? 'success.main' : 'action.disabledBackground', color: 'text.disabled', opacity: 0.8 },
+                                                        fontWeight: 700,
+                                                        '&:hover': { bgcolor: sentInvites.has(candidate.username) ? '#16a34a' : '#b3922d' },
+                                                        '&.Mui-disabled': { bgcolor: sentInvites.has(candidate.username) ? '#22c55e' : 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)' },
                                                     }}
                                                 >
-                                                    {sentInvites.has(candidate.username) ? 'Invited ✓' : 'Send Invite'}
+                                                    {sentInvites.has(candidate.username) ? 'Invited' : 'Send Invite'}
                                                 </Button>
                                             </Stack>
                                         </MotionBox>

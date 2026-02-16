@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
     Box,
     Container,
@@ -20,13 +20,14 @@ import {
     Snackbar,
     Alert,
     Badge,
+    InputBase,
+    CircularProgress,
 } from '@mui/material';
 import {
     Add as AddIcon,
     ArrowForward,
     AccessTime,
     Group,
-    ArrowBack,
     MoreHoriz,
     Explore,
     FolderSpecial,
@@ -34,12 +35,15 @@ import {
     CheckCircle,
     Cancel,
     PersonAdd,
+    Search as SearchIcon,
 } from '@mui/icons-material';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { projectApi, ProjectResponse, InvitationResponse } from '@/utils/projectApi';
+import { TopBar } from '@/components/shared/TopBar';
+import { DistortedBackground } from '@/components/shared/DistortedBackground';
 
+const GOLD = '#D4AF37';
 const MotionPaper = motion(Paper);
 
 export default function ProjectsPage() {
@@ -53,23 +57,32 @@ export default function ProjectsPage() {
     const [filterCreated, setFilterCreated] = useState(false);
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
+    // Search state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<ProjectResponse[]>([]);
+    const [searching, setSearching] = useState(false);
+    const searchTimer = useRef<NodeJS.Timeout | null>(null);
+
     // Request detail modal state
     const [selectedRequest, setSelectedRequest] = useState<InvitationResponse | null>(null);
     const [respondLoading, setRespondLoading] = useState(false);
     const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
     useEffect(() => {
-        // Get current user ID from localStorage
         const storedUserId = localStorage.getItem('user_id');
         if (storedUserId) {
             setCurrentUserId(parseInt(storedUserId));
         }
 
-        // Check for filter param
         const filterParam = searchParams.get('filter');
         if (filterParam === 'created') {
             setFilterCreated(true);
-            setActiveTab(0); // Ensure we are on My Projects tab
+            setActiveTab(0);
+        }
+
+        const tabParam = searchParams.get('tab');
+        if (tabParam === 'explore') {
+            setActiveTab(1);
         }
 
         const fetchAll = async () => {
@@ -91,6 +104,34 @@ export default function ProjectsPage() {
         fetchAll();
     }, [searchParams]);
 
+    // Debounced semantic search
+    useEffect(() => {
+        if (searchTimer.current) clearTimeout(searchTimer.current);
+
+        if (!searchQuery || searchQuery.trim().length < 3) {
+            setSearchResults([]);
+            setSearching(false);
+            return;
+        }
+
+        setSearching(true);
+        searchTimer.current = setTimeout(async () => {
+            try {
+                const results = await projectApi.searchProjects(searchQuery.trim());
+                setSearchResults(results);
+            } catch (err) {
+                console.error('Search failed:', err);
+                setSearchResults([]);
+            } finally {
+                setSearching(false);
+            }
+        }, 800);
+
+        return () => {
+            if (searchTimer.current) clearTimeout(searchTimer.current);
+        };
+    }, [searchQuery]);
+
     const handleRespondRequest = async (requestId: string, status: 'ACCEPTED' | 'REJECTED') => {
         setRespondLoading(true);
         try {
@@ -100,7 +141,6 @@ export default function ProjectsPage() {
                 message: status === 'ACCEPTED' ? 'Request accepted! Member added to team.' : 'Request rejected.',
                 severity: 'success'
             });
-            // Remove from list
             setJoinRequests(prev => prev.filter(r => r.id !== requestId));
             setSelectedRequest(null);
         } catch (err: any) {
@@ -113,19 +153,19 @@ export default function ProjectsPage() {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'Open': return { bg: '#E3F2FD', text: '#1565C0' };
-            case 'In Progress': return { bg: '#FFF3E0', text: '#E65100' };
-            case 'Completed': return { bg: '#E8F5E9', text: '#2E7D32' };
-            default: return { bg: '#F5F5F5', text: '#616161' };
+            case 'Open': return { bg: 'rgba(21, 101, 192, 0.2)', text: '#42a5f5' };
+            case 'In Progress': return { bg: 'rgba(230, 81, 0, 0.2)', text: '#ff9800' };
+            case 'Completed': return { bg: 'rgba(46, 125, 50, 0.2)', text: '#66bb6a' };
+            default: return { bg: 'rgba(255, 255, 255, 0.1)', text: '#bdbdbd' };
         }
     };
 
     const getComplexityColor = (complexity: string) => {
         switch (complexity) {
-            case 'Easy': return { bg: '#E8F5E9', text: '#2E7D32' };
-            case 'Medium': return { bg: '#FFF3E0', text: '#E65100' };
-            case 'Hard': return { bg: '#FCE4EC', text: '#C62828' };
-            default: return { bg: '#F5F5F5', text: '#616161' };
+            case 'Easy': return { bg: 'rgba(46, 125, 50, 0.2)', text: '#66bb6a' };
+            case 'Medium': return { bg: 'rgba(230, 81, 0, 0.2)', text: '#ff9800' };
+            case 'Hard': return { bg: 'rgba(198, 40, 40, 0.2)', text: '#ef5350' };
+            default: return { bg: 'rgba(255, 255, 255, 0.1)', text: '#bdbdbd' };
         }
     };
 
@@ -146,15 +186,18 @@ export default function ProjectsPage() {
                 sx={{
                     p: 3,
                     borderRadius: 4,
-                    border: theme => `1px solid ${theme.palette.divider}`,
+                    bgcolor: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.05)',
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
                     minHeight: 320,
                     transition: 'all 0.2s ease',
+                    backdropFilter: 'blur(10px)',
                     '&:hover': {
-                        borderColor: 'text.disabled',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+                        borderColor: GOLD,
+                        bgcolor: 'rgba(255,255,255,0.05)',
+                        boxShadow: `0 0 20px rgba(212, 175, 55, 0.1)`,
                     }
                 }}
             >
@@ -164,7 +207,7 @@ export default function ProjectsPage() {
                         <Chip
                             label={project.category}
                             size="small"
-                            sx={{ bgcolor: 'action.hover', fontWeight: 500, fontSize: '0.75rem' }}
+                            sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', fontWeight: 500, fontSize: '0.75rem' }}
                         />
                         <Chip
                             label={project.status}
@@ -180,7 +223,7 @@ export default function ProjectsPage() {
                     <IconButton
                         size="small"
                         onClick={(e) => { e.stopPropagation(); }}
-                        sx={{ opacity: 0.5, '&:hover': { opacity: 1 } }}
+                        sx={{ color: 'rgba(255,255,255,0.5)', '&:hover': { color: 'white' } }}
                     >
                         <MoreHoriz fontSize="small" />
                     </IconButton>
@@ -192,6 +235,8 @@ export default function ProjectsPage() {
                     fontWeight="700"
                     sx={{
                         mb: 1,
+                        color: 'white',
+                        fontFamily: 'Space Grotesk',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         display: '-webkit-box',
@@ -203,9 +248,9 @@ export default function ProjectsPage() {
                 </Typography>
                 <Typography
                     variant="body2"
-                    color="text.secondary"
                     sx={{
                         mb: 2,
+                        color: 'rgba(255,255,255,0.6)',
                         lineHeight: 1.6,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -220,13 +265,13 @@ export default function ProjectsPage() {
 
                 {/* Meta */}
                 <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-                    <Stack direction="row" alignItems="center" spacing={0.5} color="text.secondary">
+                    <Stack direction="row" alignItems="center" spacing={0.5} sx={{ color: 'rgba(255,255,255,0.5)' }}>
                         <Group sx={{ fontSize: 16 }} />
                         <Typography variant="caption" fontWeight="500">
                             {project.team_size.min}-{project.team_size.max}
                         </Typography>
                     </Stack>
-                    <Stack direction="row" alignItems="center" spacing={0.5} color="text.secondary">
+                    <Stack direction="row" alignItems="center" spacing={0.5} sx={{ color: 'rgba(255,255,255,0.5)' }}>
                         <AccessTime sx={{ fontSize: 16 }} />
                         <Typography variant="caption" fontWeight="500">
                             {project.estimated_duration}
@@ -242,14 +287,14 @@ export default function ProjectsPage() {
                             label={skill}
                             size="small"
                             variant="outlined"
-                            sx={{ fontSize: '0.7rem', height: 24 }}
+                            sx={{ fontSize: '0.7rem', height: 24, color: 'rgba(255,255,255,0.7)', borderColor: 'rgba(255,255,255,0.2)' }}
                         />
                     ))}
                     {project.required_skills.length > 4 && (
                         <Chip
                             label={`+${project.required_skills.length - 4}`}
                             size="small"
-                            sx={{ fontSize: '0.7rem', height: 24, bgcolor: 'action.hover' }}
+                            sx={{ fontSize: '0.7rem', height: 24, bgcolor: 'rgba(255,255,255,0.1)', color: 'white' }}
                         />
                     )}
                 </Box>
@@ -263,8 +308,9 @@ export default function ProjectsPage() {
                             display: 'flex',
                             alignItems: 'center',
                             gap: 0.5,
-                            color: 'text.secondary',
-                            '&:hover': { color: 'text.primary' },
+                            color: GOLD,
+                            fontFamily: 'Space Grotesk',
+                            '&:hover': { color: '#F0C040' },
                         }}
                     >
                         View Details <ArrowForward sx={{ fontSize: 14 }} />
@@ -286,31 +332,32 @@ export default function ProjectsPage() {
             sx={{
                 p: 3,
                 borderRadius: 4,
-                border: theme => `1px solid ${theme.palette.divider}`,
+                bgcolor: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.05)',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 '&:hover': {
-                    borderColor: '#a855f7',
-                    boxShadow: '0 4px 20px rgba(168, 85, 247, 0.1)',
+                    borderColor: GOLD,
+                    boxShadow: `0 4px 20px rgba(212, 175, 55, 0.1)`,
                 }
             }}
         >
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                 <Box sx={{ flex: 1 }}>
                     <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                        <PersonAdd sx={{ fontSize: 18, color: '#a855f7' }} />
-                        <Typography variant="subtitle1" fontWeight="700">
+                        <PersonAdd sx={{ fontSize: 18, color: GOLD }} />
+                        <Typography variant="subtitle1" fontWeight="700" color="white" fontFamily="Space Grotesk">
                             {req.project_title}
                         </Typography>
                     </Stack>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    <Typography variant="body2" sx={{ mb: 1, color: 'rgba(255,255,255,0.7)' }}>
                         <strong>Role:</strong> {req.role}
                     </Typography>
                     {req.message && (
                         <Typography
                             variant="body2"
-                            color="text.secondary"
                             sx={{
+                                color: 'rgba(255,255,255,0.5)',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                                 display: '-webkit-box',
@@ -321,7 +368,7 @@ export default function ProjectsPage() {
                             "{req.message}"
                         </Typography>
                     )}
-                    <Typography variant="caption" color="text.disabled" sx={{ mt: 1, display: 'block' }}>
+                    <Typography variant="caption" sx={{ mt: 1, display: 'block', color: 'rgba(255,255,255,0.3)' }}>
                         {new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </Typography>
                 </Box>
@@ -329,8 +376,8 @@ export default function ProjectsPage() {
                     label={req.status}
                     size="small"
                     sx={{
-                        bgcolor: req.status === 'PENDING' ? '#FFF3E0' : req.status === 'ACCEPTED' ? '#E8F5E9' : '#FCE4EC',
-                        color: req.status === 'PENDING' ? '#E65100' : req.status === 'ACCEPTED' ? '#2E7D32' : '#C62828',
+                        bgcolor: req.status === 'PENDING' ? 'rgba(230, 81, 0, 0.2)' : req.status === 'ACCEPTED' ? 'rgba(46, 125, 50, 0.2)' : 'rgba(198, 40, 40, 0.2)',
+                        color: req.status === 'PENDING' ? '#ff9800' : req.status === 'ACCEPTED' ? '#66bb6a' : '#ef5350',
                         fontWeight: 600,
                         fontSize: '0.7rem',
                     }}
@@ -343,198 +390,249 @@ export default function ProjectsPage() {
         ? myProjects.filter(p => p.auth_user_id === currentUserId)
         : myProjects;
 
-    const currentProjects = activeTab === 0 ? filteredMyProjects : allProjects;
+    const exploreProjects = searchQuery.trim().length >= 2 ? searchResults : allProjects;
+    const currentProjects = activeTab === 0 ? filteredMyProjects : exploreProjects;
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 4 }}>
-            <Container maxWidth="xl">
-                {/* Navigation */}
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                    <Button
-                        component={Link}
-                        href="/"
-                        startIcon={<ArrowBack />}
-                        sx={{ color: 'text.secondary', textTransform: 'none' }}
-                    >
-                        Home
-                    </Button>
-                </Stack>
+        <Box sx={{ minHeight: '100vh', bgcolor: '#050505', color: 'white', overflowX: 'hidden', position: 'relative' }}>
+            <DistortedBackground />
+            <TopBar />
 
-                {/* Header */}
-                <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    justifyContent="space-between"
-                    alignItems={{ xs: 'flex-start', sm: 'center' }}
-                    spacing={2}
-                    sx={{ mb: 4 }}
-                >
-                    <Box>
-                        <Typography variant="h3" fontWeight="800" sx={{ letterSpacing: '-0.02em', mb: 0.5 }}>
-                            Projects
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                            {activeTab === 0
-                                ? 'Manage your projects and track progress'
-                                : activeTab === 1
-                                    ? 'Discover projects and request to join'
-                                    : 'Review join requests from other users'}
-                        </Typography>
-                        {activeTab === 0 && (
-                            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                                <Chip
-                                    label="All"
-                                    onClick={() => setFilterCreated(false)}
-                                    color={!filterCreated ? "primary" : "default"}
-                                    variant={!filterCreated ? "filled" : "outlined"}
-                                    size="small"
-                                    clickable
-                                />
-                                <Chip
-                                    label="Created by Me"
-                                    onClick={() => setFilterCreated(true)}
-                                    color={filterCreated ? "primary" : "default"}
-                                    variant={filterCreated ? "filled" : "outlined"}
-                                    size="small"
-                                    clickable
-                                />
-                            </Stack>
-                        )}
-                    </Box>
-                    <Button
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                        onClick={() => router.push('/projects/create')}
-                        disableElevation
-                        sx={{
-                            bgcolor: 'text.primary',
-                            color: 'background.default',
-                            px: 3,
-                            py: 1.5,
-                            borderRadius: 2,
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            '&:hover': { bgcolor: 'text.secondary' }
-                        }}
+            <Box sx={{ pt: '100px', position: 'relative', zIndex: 10 }}>
+                <Container maxWidth="xl">
+                    {/* Header */}
+                    <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        justifyContent="space-between"
+                        alignItems={{ xs: 'flex-start', sm: 'center' }}
+                        spacing={2}
+                        sx={{ mb: 4 }}
                     >
-                        New Project
-                    </Button>
-                </Stack>
-
-                {/* Tabs */}
-                <Box sx={{ mb: 4 }}>
-                    <Tabs
-                        value={activeTab}
-                        onChange={(_, v) => setActiveTab(v)}
-                        sx={{
-                            '& .MuiTab-root': {
+                        <Box>
+                            <Typography variant="h3" fontWeight="800" sx={{ letterSpacing: '-0.02em', mb: 0.5, fontFamily: 'Space Grotesk', color: 'white' }}>
+                                Projects
+                            </Typography>
+                            <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                                {activeTab === 0
+                                    ? 'Manage your projects and track progress'
+                                    : activeTab === 1
+                                        ? 'Discover projects and request to join'
+                                        : 'Review join requests from other users'}
+                            </Typography>
+                            {activeTab === 0 && (
+                                <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                                    <Chip
+                                        label="All"
+                                        onClick={() => setFilterCreated(false)}
+                                        sx={{
+                                            bgcolor: !filterCreated ? GOLD : 'rgba(255,255,255,0.1)',
+                                            color: !filterCreated ? 'black' : 'white',
+                                            fontWeight: 600,
+                                            '&:hover': { bgcolor: !filterCreated ? '#F0C040' : 'rgba(255,255,255,0.2)' }
+                                        }}
+                                        size="small"
+                                        clickable
+                                    />
+                                    <Chip
+                                        label="Created by Me"
+                                        onClick={() => setFilterCreated(true)}
+                                        sx={{
+                                            bgcolor: filterCreated ? GOLD : 'rgba(255,255,255,0.1)',
+                                            color: filterCreated ? 'black' : 'white',
+                                            fontWeight: 600,
+                                            '&:hover': { bgcolor: filterCreated ? '#F0C040' : 'rgba(255,255,255,0.2)' }
+                                        }}
+                                        size="small"
+                                        clickable
+                                    />
+                                </Stack>
+                            )}
+                        </Box>
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={() => router.push('/projects/create')}
+                            disableElevation
+                            sx={{
+                                bgcolor: GOLD,
+                                color: 'black',
+                                px: 3,
+                                py: 1.5,
+                                borderRadius: 2,
                                 textTransform: 'none',
                                 fontWeight: 600,
-                                fontSize: '0.95rem',
-                                minHeight: 48,
-                            },
-                            '& .MuiTabs-indicator': {
-                                height: 3,
-                                borderRadius: '3px 3px 0 0',
-                            },
-                        }}
-                    >
-                        <Tab
-                            icon={<FolderSpecial sx={{ fontSize: 20 }} />}
-                            iconPosition="start"
-                            label={`My Projects (${myProjects.length})`}
-                        />
-                        <Tab
-                            icon={<Explore sx={{ fontSize: 20 }} />}
-                            iconPosition="start"
-                            label={`Explore (${allProjects.length})`}
-                        />
-                        <Tab
-                            icon={
-                                <Badge badgeContent={pendingRequests.length} color="error" max={99}>
-                                    <Inbox sx={{ fontSize: 20 }} />
-                                </Badge>
-                            }
-                            iconPosition="start"
-                            label="Requests"
-                        />
-                    </Tabs>
-                </Box>
+                                fontFamily: 'Space Grotesk',
+                                '&:hover': { bgcolor: '#F0C040' }
+                            }}
+                        >
+                            New Project
+                        </Button>
+                    </Stack>
 
-                {/* Content */}
-                {loading ? (
-                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 3 }}>
-                        {[1, 2, 3].map((n) => (
-                            <Skeleton key={n} variant="rectangular" height={320} sx={{ borderRadius: 4 }} />
-                        ))}
+                    {/* Tabs */}
+                    <Box sx={{ mb: 4 }}>
+                        <Tabs
+                            value={activeTab}
+                            onChange={(_, v) => setActiveTab(v)}
+                            sx={{
+                                '& .MuiTab-root': {
+                                    textTransform: 'none',
+                                    fontWeight: 600,
+                                    fontSize: '0.95rem',
+                                    minHeight: 48,
+                                    color: 'rgba(255,255,255,0.5)',
+                                    fontFamily: 'Space Grotesk',
+                                    '&.Mui-selected': { color: GOLD },
+                                },
+                                '& .MuiTabs-indicator': {
+                                    height: 3,
+                                    borderRadius: '3px 3px 0 0',
+                                    bgcolor: GOLD,
+                                },
+                            }}
+                        >
+                            <Tab
+                                icon={<FolderSpecial sx={{ fontSize: 20 }} />}
+                                iconPosition="start"
+                                label={`My Projects (${myProjects.length})`}
+                            />
+                            <Tab
+                                icon={<Explore sx={{ fontSize: 20 }} />}
+                                iconPosition="start"
+                                label={`Explore (${allProjects.length})`}
+                            />
+                            <Tab
+                                icon={
+                                    <Badge badgeContent={pendingRequests.length} color="error" max={99}>
+                                        <Inbox sx={{ fontSize: 20 }} />
+                                    </Badge>
+                                }
+                                iconPosition="start"
+                                label="Requests"
+                            />
+                        </Tabs>
                     </Box>
-                ) : activeTab === 2 ? (
-                    // Requests Tab
-                    pendingRequests.length === 0 ? (
+
+                    {/* Search Bar — Explore tab only */}
+                    {activeTab === 1 && (
+                        <Box
+                            sx={{
+                                mb: 3,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1.5,
+                                bgcolor: 'rgba(255,255,255,0.04)',
+                                border: '1px solid rgba(255,255,255,0.08)',
+                                borderRadius: 3,
+                                px: 2,
+                                py: 0.5,
+                                maxWidth: 520,
+                                transition: 'border-color 0.2s',
+                                '&:focus-within': {
+                                    borderColor: GOLD,
+                                    boxShadow: `0 0 0 1px ${GOLD}40`,
+                                },
+                            }}
+                        >
+                            <SearchIcon sx={{ color: 'rgba(255,255,255,0.4)', fontSize: 22 }} />
+                            <InputBase
+                                placeholder="Search projects semantically — e.g. 'chat app with AI'"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                fullWidth
+                                sx={{
+                                    color: 'white',
+                                    fontFamily: 'Space Grotesk',
+                                    fontSize: '0.95rem',
+                                    '& input::placeholder': {
+                                        color: 'rgba(255,255,255,0.35)',
+                                        opacity: 1,
+                                    },
+                                }}
+                            />
+                            {searching && <CircularProgress size={18} sx={{ color: GOLD }} />}
+                        </Box>
+                    )}
+
+                    {/* Content */}
+                    {loading ? (
+                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 3 }}>
+                            {[1, 2, 3].map((n) => (
+                                <Skeleton key={n} variant="rectangular" height={320} sx={{ borderRadius: 4, bgcolor: 'rgba(255,255,255,0.05)' }} />
+                            ))}
+                        </Box>
+                    ) : activeTab === 2 ? (
+                        // Requests Tab
+                        pendingRequests.length === 0 ? (
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    p: 8,
+                                    borderRadius: 4,
+                                    textAlign: 'center',
+                                    bgcolor: 'rgba(255,255,255,0.02)',
+                                    border: '1px solid rgba(255,255,255,0.05)',
+                                }}
+                            >
+                                <Inbox sx={{ fontSize: 48, color: 'rgba(255,255,255,0.2)', mb: 2 }} />
+                                <Typography variant="h6" fontWeight="600" sx={{ mb: 1, color: 'white', fontFamily: 'Space Grotesk' }}>
+                                    No pending requests
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                                    When someone requests to join your project, it will appear here.
+                                </Typography>
+                            </Paper>
+                        ) : (
+                            <Stack spacing={2} sx={{ maxWidth: 700 }}>
+                                {pendingRequests.map((req, index) => renderRequestCard(req, index))}
+                            </Stack>
+                        )
+                    ) : currentProjects.length === 0 ? (
                         <Paper
                             elevation={0}
                             sx={{
                                 p: 8,
                                 borderRadius: 4,
                                 textAlign: 'center',
-                                border: theme => `1px solid ${theme.palette.divider}`,
+                                bgcolor: 'rgba(255,255,255,0.02)',
+                                border: '1px solid rgba(255,255,255,0.05)',
                             }}
                         >
-                            <Inbox sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
-                            <Typography variant="h6" fontWeight="600" sx={{ mb: 1 }}>
-                                No pending requests
+                            <Typography variant="h6" fontWeight="600" sx={{ mb: 1, color: 'white', fontFamily: 'Space Grotesk' }}>
+                                {activeTab === 0 ? 'No projects yet' : 'No projects to explore'}
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                When someone requests to join your project, it will appear here.
+                            <Typography variant="body2" sx={{ mb: 3, color: 'rgba(255,255,255,0.5)' }}>
+                                {activeTab === 0
+                                    ? 'Create your first project to get started'
+                                    : 'Check back later for new projects from other users'
+                                }
                             </Typography>
+                            {activeTab === 0 && (
+                                <Button
+                                    variant="contained"
+                                    startIcon={<AddIcon />}
+                                    onClick={() => router.push('/projects/create')}
+                                    disableElevation
+                                    sx={{
+                                        bgcolor: GOLD,
+                                        color: 'black',
+                                        textTransform: 'none',
+                                        fontWeight: 600,
+                                        fontFamily: 'Space Grotesk',
+                                        '&:hover': { bgcolor: '#F0C040' }
+                                    }}
+                                >
+                                    Create Project
+                                </Button>
+                            )}
                         </Paper>
                     ) : (
-                        <Stack spacing={2} sx={{ maxWidth: 700 }}>
-                            {pendingRequests.map((req, index) => renderRequestCard(req, index))}
-                        </Stack>
-                    )
-                ) : currentProjects.length === 0 ? (
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            p: 8,
-                            borderRadius: 4,
-                            textAlign: 'center',
-                            border: theme => `1px solid ${theme.palette.divider}`,
-                        }}
-                    >
-                        <Typography variant="h6" fontWeight="600" sx={{ mb: 1 }}>
-                            {activeTab === 0 ? 'No projects yet' : 'No projects to explore'}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                            {activeTab === 0
-                                ? 'Create your first project to get started'
-                                : 'Check back later for new projects from other users'
-                            }
-                        </Typography>
-                        {activeTab === 0 && (
-                            <Button
-                                variant="contained"
-                                startIcon={<AddIcon />}
-                                onClick={() => router.push('/projects/create')}
-                                disableElevation
-                                sx={{
-                                    bgcolor: 'text.primary',
-                                    color: 'background.default',
-                                    textTransform: 'none',
-                                    fontWeight: 600,
-                                    '&:hover': { bgcolor: 'text.secondary' }
-                                }}
-                            >
-                                Create Project
-                            </Button>
-                        )}
-                    </Paper>
-                ) : (
-                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 3 }}>
-                        {currentProjects.map((project, index) => renderProjectCard(project, index))}
-                    </Box>
-                )}
-            </Container>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 3 }}>
+                            {currentProjects.map((project, index) => renderProjectCard(project, index))}
+                        </Box>
+                    )}
+                </Container>
+            </Box>
 
             {/* Request Detail Modal */}
             <Dialog
@@ -542,32 +640,32 @@ export default function ProjectsPage() {
                 onClose={() => setSelectedRequest(null)}
                 maxWidth="sm"
                 fullWidth
-                PaperProps={{ sx: { borderRadius: 3 } }}
+                PaperProps={{ sx: { borderRadius: 3, bgcolor: '#111', color: 'white', border: '1px solid rgba(255,255,255,0.1)' } }}
             >
                 {selectedRequest && (
                     <>
-                        <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>
+                        <DialogTitle sx={{ fontWeight: 700, pb: 1, fontFamily: 'Space Grotesk' }}>
                             Join Request
                         </DialogTitle>
                         <DialogContent>
                             <Stack spacing={2.5} sx={{ mt: 1 }}>
                                 <Box>
-                                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'rgba(255,255,255,0.5)' }}>
                                         Project
                                     </Typography>
-                                    <Typography variant="body1" fontWeight="600">
+                                    <Typography variant="body1" fontWeight="600" color="white">
                                         {selectedRequest.project_title}
                                     </Typography>
                                 </Box>
                                 <Box>
-                                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'rgba(255,255,255,0.5)' }}>
                                         Requested Role
                                     </Typography>
-                                    <Chip label={selectedRequest.role} size="small" sx={{ bgcolor: '#EDE9FE', color: '#7C3AED', fontWeight: 600 }} />
+                                    <Chip label={selectedRequest.role} size="small" sx={{ bgcolor: 'rgba(212, 175, 55, 0.2)', color: GOLD, fontWeight: 600 }} />
                                 </Box>
                                 {selectedRequest.message && (
                                     <Box>
-                                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                        <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'rgba(255,255,255,0.5)' }}>
                                             Message
                                         </Typography>
                                         <Paper
@@ -575,20 +673,20 @@ export default function ProjectsPage() {
                                             sx={{
                                                 p: 2,
                                                 borderRadius: 2,
-                                                bgcolor: 'action.hover',
+                                                bgcolor: 'rgba(255,255,255,0.05)',
                                             }}
                                         >
-                                            <Typography variant="body2" sx={{ lineHeight: 1.6, fontStyle: 'italic' }}>
+                                            <Typography variant="body2" sx={{ lineHeight: 1.6, fontStyle: 'italic', color: 'rgba(255,255,255,0.8)' }}>
                                                 "{selectedRequest.message}"
                                             </Typography>
                                         </Paper>
                                     </Box>
                                 )}
                                 <Box>
-                                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'rgba(255,255,255,0.5)' }}>
                                         Requested On
                                     </Typography>
-                                    <Typography variant="body2">
+                                    <Typography variant="body2" color="rgba(255,255,255,0.7)">
                                         {new Date(selectedRequest.created_at).toLocaleDateString('en-US', {
                                             year: 'numeric',
                                             month: 'long',
@@ -601,7 +699,7 @@ export default function ProjectsPage() {
                         <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
                             <Button
                                 onClick={() => setSelectedRequest(null)}
-                                sx={{ textTransform: 'none', color: 'text.secondary' }}
+                                sx={{ textTransform: 'none', color: 'rgba(255,255,255,0.5)' }}
                             >
                                 Close
                             </Button>

@@ -88,6 +88,13 @@ export interface ProjectPlannerResponse {
     error?: string;
 }
 
+export interface ProjectPlan {
+    project_id: string;
+    roadmap: Sprint[];
+    created_at: string;
+    updated_at?: string;
+}
+
 export interface SendInvitationRequest {
     project_id: string;
     sender_id: number;
@@ -112,6 +119,11 @@ export const projectApi = {
 
     getAllProjects: async () => {
         const response = await api.get('/api/projects/all-projects');
+        return response.data;
+    },
+
+    searchProjects: async (query: string): Promise<ProjectResponse[]> => {
+        const response = await api.get('/api/projects/search', { params: { q: query } });
         return response.data;
     },
 
@@ -166,6 +178,11 @@ export const projectApi = {
 
     // ---- Teams ----
 
+    getMyTeams: async (): Promise<TeamResponse[]> => {
+        const response = await api.get('/api/teams/my-teams');
+        return response.data;
+    },
+
     getTeamById: async (teamId: string): Promise<TeamResponse> => {
         const response = await api.get(`/api/teams/team/${teamId}`);
         return response.data;
@@ -180,6 +197,33 @@ export const projectApi = {
 
     generateRoadmap: async (projectId: string): Promise<ProjectPlannerResponse> => {
         const response = await api.post('/api/agents/project-planner', { project_id: projectId });
+        return response.data;
+    },
+
+    getProjectPlan: async (projectId: string): Promise<ProjectPlan> => {
+        const response = await api.get(`/api/planned-projects/project/${projectId}`);
+        return response.data;
+    },
+
+    updateTaskStatus: async (data: { project_id: string; task_id: string; status: string }) => {
+        const response = await api.patch('/api/planned-projects/tasks', data);
+        return response.data;
+    },
+
+    // ---- Rooms ----
+
+    createRoom: async (data: { project_id: string; created_by: string }) => {
+        const response = await api.post('/api/rooms', data);
+        return response.data;
+    },
+
+    getRoom: async (projectId: string) => {
+        const response = await api.get(`/api/rooms/${projectId}`);
+        return response.data;
+    },
+
+    getMyRooms: async () => {
+        const response = await api.get('/api/rooms');
         return response.data;
     },
 };

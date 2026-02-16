@@ -2,12 +2,18 @@
 
 import { Box, Button, Container, Typography, Stack, IconButton, CircularProgress } from '@mui/material';
 import { Groups, AutoFixHigh, Bolt, ArrowForward, Brightness4, Brightness7 } from '@mui/icons-material';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useThemeContext } from '@/context/ThemeContext';
 import { useTheme } from '@mui/material/styles';
+
+// Landing Page Components
+import { LoadingScreen } from '@/components/landing/LoadingScreen';
+import { PhotoCollage } from '@/components/landing/PhotoCollage';
+import { HeroContent } from '@/components/landing/HeroContent';
+import { ScrollIndicator } from '@/components/landing/ScrollIndicator';
 
 // --- Minimal Landing Page ---
 
@@ -378,42 +384,44 @@ function Footer() {
 
 export default function LandingPage() {
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
+  const [loading, setLoading] = useState(true);
 
+  // Check for token on mount (paused logic preserved)
   useEffect(() => {
-    // Check for token on mount
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
     if (token) {
-      router.push('/dashboard');
-    } else {
-      router.push('/login');
+      // router.push('/dashboard'); // Paused as per user request
     }
-    setChecking(false);
+    // We don't redirect to login here for landing page visitors
   }, [router]);
 
-  if (checking) {
-    return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: 'background.default' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  // Fallback: If for some reason redirect is slow, we render the landing page, 
-  // but practically users won't see this often as checking is fast.
-  // Or if we want to completely disable landing page view:
-  return null;
-
-  /* 
-  // Original Landing Page Content (Commented out as per user request to redirect to login if not authenticated)
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
-      <NavBar />
-      <HeroSection />
-      <FeaturesSection />
-      <CTASection />
-      <Footer />
+    <Box sx={{ bgcolor: 'black', minHeight: '100vh', overflow: 'hidden', position: 'relative' }}>
+
+      {/* 1. Loading Screen Overlay */}
+      <AnimatePresence>
+        {loading && (
+          <LoadingScreen onComplete={() => setLoading(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* 2. Main Content (Revealed after loading) */}
+      <Box sx={{ position: 'relative', height: '100vh', width: '100%' }}>
+
+        {/* Background Photo Collage */}
+        <PhotoCollage />
+
+        {/* Hero Content (Text & CTA) */}
+        {!loading && (
+          <HeroContent />
+        )}
+
+        {/* Scroll Indicator */}
+        {!loading && (
+          <ScrollIndicator />
+        )}
+      </Box>
+
     </Box>
   );
-  */
 }
