@@ -37,9 +37,13 @@
 - **Invitations** — Send and receive team invitations.
 - **Join Requests** — Browse projects and request to join.
 
-### 💻 Live Sessions
-- **Coding Rooms** — Dedicated workspace for active projects.
-- **Real-time Code Execution** — Run code directly in the browser (powered by Piston).
+### 💻 Live Sessions (New!)
+- **Coding Rooms** — Collaborative workspace with real-time sync.
+- **Code Editor** — Monaco-based editor with syntax highlighting and multi-user support.
+- **File Explorer** — Create, delete, rename files/folders instantly.
+- **Whiteboard** — Shared infinite canvas using `tldraw` for brainstorming.
+- **Team Chat** — Real-time messaging for seamless communication.
+- **Interactive Avatar** — 3D-style robot companion that reacts to UI interactions.
 - **Cinema Mode** — Immersive "Smoky Deep Gold Frost" UI for focused work.
 
 ---
@@ -53,6 +57,9 @@
 - **State Management**: React Hooks (`useState`, `useEffect`, `useContext`)
 - **API Client**: [Axios](https://axios-http.com/)
 - **Icons**: [MUI Icons](https://mui.com/material-ui/material-icons/)
+- **Whiteboard**: [tldraw](https://tldraw.com/)
+- **Code Editor**: [Monaco Editor](https://microsoft.github.io/monaco-editor/)
+- **Real-time**: [Socket.IO Client](https://socket.io/)
 
 ---
 
@@ -67,14 +74,17 @@ frontend/
 │   │   ├── projects/           # Project listing & creation
 │   │   │   ├── [id]/           # Project details (Roadmap, Kanban)
 │   │   │   └── create/         # Project creation wizard
+│   │   ├── room/               # Live coding sessions
+│   │   │   └── [roomId]/       # Active session page
 │   │   ├── profile/            # User profile management
 │   │   ├── invitations/        # Team invitations
-│   │   ├── sessions/           # Live coding sessions
 │   │   └── layout.tsx          # Root layout & providers
 │   │
 │   ├── components/
 │   │   ├── common/             # Reusable UI components
-│   │   ├── projects/           # Project-specific components (RoadmapView)
+│   │   ├── projects/           # Project-specific components
+│   │   ├── Collaboration/      # Code Editor, Whiteboard, Chat
+│   │   ├── InteractiveAvatar.tsx 
 │   │   └── TeamRecommendationsModal.tsx
 │   │
 │   ├── context/
@@ -127,7 +137,7 @@ frontend/
 | `/projects/create` | Create a new project |
 | `/projects/[id]` | Project details & roadmap |
 | `/profile` | User profile |
-| `/sessions` | Live coding sessions |
+| `/room/[id]` | Active collaborative coding session |
 
 ---
 
