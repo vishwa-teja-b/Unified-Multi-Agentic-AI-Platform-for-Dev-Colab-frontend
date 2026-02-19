@@ -226,4 +226,16 @@ export const projectApi = {
         const response = await api.get('/api/rooms');
         return response.data;
     },
+
+    // ---- Workspace Persistence ----
+
+    saveWorkspace: async (projectId: string, data: { fileStructure?: any; drawingData?: any }) => {
+        const response = await api.put(`/api/rooms/${projectId}/workspace`, data);
+        return response.data;
+    },
+
+    getWorkspace: async (projectId: string) => {
+        const response = await api.get(`/api/rooms/${projectId}/workspace`);
+        return response.data;
+    },
 };

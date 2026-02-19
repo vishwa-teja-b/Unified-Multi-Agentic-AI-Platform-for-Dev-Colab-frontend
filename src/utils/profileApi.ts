@@ -2,6 +2,7 @@ import api from './api';
 
 export interface ProfileData {
     id?: string;
+    auth_user_id?: number;
     name: string;
     username: string;
     email: string;
@@ -49,5 +50,15 @@ export const profileApi = {
     testAuth: async () => {
         const response = await api.get('/api/profiles/test-auth');
         return response.data;
+    },
+
+    getIdentity: async () => {
+        try {
+            const response = await api.get('/api/profiles/test-auth');
+            return response.data; // { message: string, user_id: number }
+        } catch (error) {
+            console.error("Identity check failed", error);
+            return null;
+        }
     }
 };

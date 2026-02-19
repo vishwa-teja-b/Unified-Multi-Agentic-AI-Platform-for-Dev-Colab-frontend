@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useFileSystem } from "@/context/FileContext";
 import { FileSystemItem, Id } from "@/types/fileTypes";
-import { sortFileSystemItem } from "@/utils/fileUtils";
+import { sortFileSystemItem, getFileById, findParentDirectory } from "@/utils/fileUtils";
 import {
     Box,
     Typography,
@@ -24,6 +24,21 @@ import UnfoldLessIcon from "@mui/icons-material/UnfoldLess";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
+const GOLD = "#D4AF37";
+
+// File extension to color mapping for file icons
+function getFileColor(filename: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase() || '';
+    const map: Record<string, string> = {
+        'py': '#3572A5', 'js': '#f1e05a', 'jsx': '#61dafb',
+        'ts': '#3178c6', 'tsx': '#3178c6', 'html': '#e34c26',
+        'css': '#563d7c', 'json': '#f59e0b', 'md': '#083fa1',
+        'java': '#b07219', 'cpp': '#f34b7d', 'c': '#555555',
+        'go': '#00ADD8', 'rs': '#dea584', 'rb': '#701516',
+    };
+    return map[ext] || '#888';
+}
+
 interface FileExplorerProps {
     onLanguageChange?: (language: string) => void;
 }
@@ -41,7 +56,17 @@ export default function FileExplorer({ onLanguageChange }: FileExplorerProps) {
     const handleCreateFile = () => {
         const fileName = prompt("Enter file name (e.g. index.js):");
         if (fileName && fileName.trim()) {
-            const parentDirId = selectedDirId || fileStructure.id;
+            let parentDirId = selectedDirId || fileStructure.id;
+
+            // If selected is a file, use its parent
+            if (selectedDirId) {
+                const selectedItem = getFileById(fileStructure, selectedDirId);
+                if (selectedItem?.type === 'file') {
+                    const parent = findParentDirectory(fileStructure, selectedDirId);
+                    if (parent) parentDirId = parent.id;
+                }
+            }
+
             createFile(parentDirId, fileName.trim());
         }
     };
@@ -49,7 +74,17 @@ export default function FileExplorer({ onLanguageChange }: FileExplorerProps) {
     const handleCreateDirectory = () => {
         const dirName = prompt("Enter directory name:");
         if (dirName && dirName.trim()) {
-            const parentDirId = selectedDirId || fileStructure.id;
+            let parentDirId = selectedDirId || fileStructure.id;
+
+            // If selected is a file, use its parent
+            if (selectedDirId) {
+                const selectedItem = getFileById(fileStructure, selectedDirId);
+                if (selectedItem?.type === 'file') {
+                    const parent = findParentDirectory(fileStructure, selectedDirId);
+                    if (parent) parentDirId = parent.id;
+                }
+            }
+
             createDirectory(parentDirId, dirName.trim());
         }
     };
@@ -59,11 +94,11 @@ export default function FileExplorer({ onLanguageChange }: FileExplorerProps) {
     return (
         <Box
             sx={{
-                width: 220,
-                minWidth: 220,
+                width: 230,
+                minWidth: 230,
                 height: "100%",
-                bgcolor: "#252526",
-                borderRight: "1px solid #333",
+                bgcolor: "#111111",
+                borderRight: `1px solid rgba(212, 175, 55, 0.08)`,
                 display: "flex",
                 flexDirection: "column",
                 overflow: "hidden",
@@ -77,38 +112,45 @@ export default function FileExplorer({ onLanguageChange }: FileExplorerProps) {
                     justifyContent: "space-between",
                     px: 1.5,
                     py: 0.5,
-                    height: 36,
-                    minHeight: 36,
-                    borderBottom: "1px solid #333",
+                    height: 38,
+                    minHeight: 38,
+                    borderBottom: `1px solid rgba(255,255,255,0.04)`,
+                    background: 'linear-gradient(180deg, #161616 0%, #111111 100%)',
                 }}
             >
                 <Typography
                     variant="caption"
-                    sx={{ color: "#999", fontWeight: "bold", letterSpacing: 1, fontSize: 11 }}
+                    sx={{
+                        color: GOLD,
+                        fontWeight: 700,
+                        letterSpacing: 1,
+                        fontSize: '0.7rem',
+                        fontFamily: 'Space Grotesk, sans-serif',
+                    }}
                 >
                     EXPLORER
                 </Typography>
                 <Box sx={{ display: "flex", gap: 0.25 }}>
                     <Tooltip title="New File" arrow>
-                        <IconButton size="small" onClick={handleCreateFile} sx={{ color: "#999", p: 0.5, "&:hover": { color: "#fff" } }}>
-                            <NoteAddOutlinedIcon sx={{ fontSize: 16 }} />
+                        <IconButton size="small" onClick={handleCreateFile} sx={{ color: '#666', p: 0.5, '&:hover': { color: GOLD, bgcolor: `${GOLD}10` } }}>
+                            <NoteAddOutlinedIcon sx={{ fontSize: 15 }} />
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="New Folder" arrow>
-                        <IconButton size="small" onClick={handleCreateDirectory} sx={{ color: "#999", p: 0.5, "&:hover": { color: "#fff" } }}>
-                            <CreateNewFolderOutlinedIcon sx={{ fontSize: 16 }} />
+                        <IconButton size="small" onClick={handleCreateDirectory} sx={{ color: '#666', p: 0.5, '&:hover': { color: GOLD, bgcolor: `${GOLD}10` } }}>
+                            <CreateNewFolderOutlinedIcon sx={{ fontSize: 15 }} />
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Collapse All" arrow>
-                        <IconButton size="small" onClick={collapseDirectories} sx={{ color: "#999", p: 0.5, "&:hover": { color: "#fff" } }}>
-                            <UnfoldLessIcon sx={{ fontSize: 16 }} />
+                        <IconButton size="small" onClick={collapseDirectories} sx={{ color: '#666', p: 0.5, '&:hover': { color: GOLD, bgcolor: `${GOLD}10` } }}>
+                            <UnfoldLessIcon sx={{ fontSize: 15 }} />
                         </IconButton>
                     </Tooltip>
                 </Box>
             </Box>
 
             {/* Tree */}
-            <Box sx={{ flexGrow: 1, overflow: "auto", py: 0.5, "&::-webkit-scrollbar": { width: 6 }, "&::-webkit-scrollbar-thumb": { bgcolor: "#555", borderRadius: 3 } }}>
+            <Box sx={{ flexGrow: 1, overflow: 'auto', py: 0.5, '&::-webkit-scrollbar': { width: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: '#333', borderRadius: 2 }, '&::-webkit-scrollbar-track': { bgcolor: 'transparent' } }}>
                 {sortedStructure.children?.map((item) => (
                     <TreeNode
                         key={item.id}
@@ -190,17 +232,19 @@ function DirectoryNode({ item, depth, selectedDirId, setSelectedDirId }: TreeNod
                     alignItems: "center",
                     pl: 1 + depth * 1.5,
                     pr: 1,
-                    py: 0.3,
+                    py: 0.35,
                     cursor: "pointer",
-                    bgcolor: selectedDirId === item.id ? "rgba(255,255,255,0.06)" : "transparent",
-                    "&:hover": { bgcolor: "rgba(255,255,255,0.08)" },
-                    minHeight: 24,
+                    bgcolor: selectedDirId === item.id ? `${GOLD}08` : 'transparent',
+                    borderLeft: selectedDirId === item.id ? `2px solid ${GOLD}60` : '2px solid transparent',
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.04)' },
+                    minHeight: 26,
+                    transition: 'all 0.15s',
                 }}
             >
                 {item.isOpen ? (
-                    <FolderOpenIcon sx={{ fontSize: 16, color: "#e8a87c", mr: 0.75, flexShrink: 0 }} />
+                    <FolderOpenIcon sx={{ fontSize: 16, color: GOLD, mr: 0.75, flexShrink: 0 }} />
                 ) : (
-                    <FolderIcon sx={{ fontSize: 16, color: "#e8a87c", mr: 0.75, flexShrink: 0 }} />
+                    <FolderIcon sx={{ fontSize: 16, color: `${GOLD}80`, mr: 0.75, flexShrink: 0 }} />
                 )}
                 {isRenaming ? (
                     <TextField
@@ -256,7 +300,14 @@ function DirectoryNode({ item, depth, selectedDirId, setSelectedDirId }: TreeNod
                 anchorPosition={contextMenu ? { top: contextMenu.y, left: contextMenu.x } : undefined}
                 slotProps={{
                     paper: {
-                        sx: { bgcolor: "#2d2d2d", color: "#ccc", minWidth: 150, "& .MuiMenuItem-root:hover": { bgcolor: "#3d3d3d" } },
+                        sx: {
+                            bgcolor: '#1a1a1a',
+                            color: '#ccc',
+                            minWidth: 150,
+                            border: `1px solid ${GOLD}15`,
+                            boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+                            '& .MuiMenuItem-root:hover': { bgcolor: `${GOLD}08` },
+                        },
                     },
                 }}
             >
@@ -330,14 +381,16 @@ function FileNode({ item, depth, setSelectedDirId }: FileNodeProps) {
                     alignItems: "center",
                     pl: 1 + depth * 1.5,
                     pr: 1,
-                    py: 0.3,
+                    py: 0.35,
                     cursor: "pointer",
-                    bgcolor: isActive ? "rgba(255,255,255,0.1)" : "transparent",
-                    "&:hover": { bgcolor: "rgba(255,255,255,0.08)" },
-                    minHeight: 24,
+                    bgcolor: isActive ? `${GOLD}10` : 'transparent',
+                    borderLeft: isActive ? `2px solid ${GOLD}` : '2px solid transparent',
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.04)' },
+                    minHeight: 26,
+                    transition: 'all 0.15s',
                 }}
             >
-                <InsertDriveFileOutlinedIcon sx={{ fontSize: 14, color: "#888", mr: 0.75, flexShrink: 0 }} />
+                <InsertDriveFileOutlinedIcon sx={{ fontSize: 14, color: getFileColor(item.name), mr: 0.75, flexShrink: 0 }} />
                 {isRenaming ? (
                     <TextField
                         value={newName}
@@ -381,7 +434,7 @@ function FileNode({ item, depth, setSelectedDirId }: FileNodeProps) {
                 anchorPosition={contextMenu ? { top: contextMenu.y, left: contextMenu.x } : undefined}
                 slotProps={{
                     paper: {
-                        sx: { bgcolor: "#2d2d2d", color: "#ccc", minWidth: 150, "& .MuiMenuItem-root:hover": { bgcolor: "#3d3d3d" } },
+                        sx: { bgcolor: '#1a1a1a', color: '#ccc', minWidth: 150, border: `1px solid ${GOLD}15`, boxShadow: '0 8px 30px rgba(0,0,0,0.5)', '& .MuiMenuItem-root:hover': { bgcolor: `${GOLD}08` } },
                     },
                 }}
             >

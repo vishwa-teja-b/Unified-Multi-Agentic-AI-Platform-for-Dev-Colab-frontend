@@ -24,6 +24,7 @@ import {
     isNameExist,
     updateItemInStructure,
     removeItemFromStructure,
+    sanitizeFileSystem,
 } from "@/utils/fileUtils";
 
 const FileContext = createContext<FileContextType | null>(null);
@@ -47,6 +48,24 @@ export function FileContextProvider({ roomId, children }: FileContextProviderPro
     );
     const [openFiles, setOpenFiles] = useState<FileSystemItem[]>([]);
     const [activeFile, setActiveFile] = useState<FileSystemItem | null>(null);
+
+    // Load saved workspace from MongoDB on mount
+    useEffect(() => {
+        const loadSavedWorkspace = async () => {
+            try {
+                const { projectApi } = await import("@/utils/projectApi");
+                const workspace = await projectApi.getWorkspace(roomId);
+                if (workspace?.fileStructure && Object.keys(workspace.fileStructure).length > 0) {
+                    const sanitized = sanitizeFileSystem(workspace.fileStructure);
+                    setFileStructure(sanitized);
+                }
+            } catch (err) {
+                // No saved workspace or error — use default
+                console.log("No saved workspace found, using defaults");
+            }
+        };
+        loadSavedWorkspace();
+    }, [roomId]);
 
     // === FILE OPERATIONS ===
 

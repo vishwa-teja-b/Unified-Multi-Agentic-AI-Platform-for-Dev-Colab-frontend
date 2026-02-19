@@ -47,9 +47,11 @@ import Link from 'next/link';
 import { useForm, Controller } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { projectApi, ProjectResponse, ProjectCreateData, TeamResponse, TeamMember, ProjectPlannerResponse } from '@/utils/projectApi';
+import { profileApi } from '@/utils/profileApi';
 import RoadmapView from '@/components/projects/RoadmapView';
 import { TopBar } from '@/components/shared/TopBar';
 import { DistortedBackground } from '@/components/shared/DistortedBackground';
+import AILoadingAnimation from '@/components/shared/AILoadingAnimation';
 
 const CATEGORIES = ["Full Stack", "Frontend", "Backend", "Mobile", "Data Science", "AI/ML", "DevOps", "Other"];
 const COMPLEXITIES = ["Easy", "Medium", "Hard"];
@@ -67,6 +69,7 @@ export default function ProjectDetailsPage() {
     const [featureInput, setFeatureInput] = useState('');
     const [showTeamModal, setShowTeamModal] = useState(false);
     const [isOwner, setIsOwner] = useState(false);
+    const [authUserId, setAuthUserId] = useState<number | null>(null);
 
     // Join request state
     const [showJoinDialog, setShowJoinDialog] = useState(false);
@@ -85,9 +88,25 @@ export default function ProjectDetailsPage() {
     const [roadmapData, setRoadmapData] = useState<ProjectPlannerResponse | null>(null);
     const [generatingRoadmap, setGeneratingRoadmap] = useState(false);
     const [fetchedRoadmap, setFetchedRoadmap] = useState(false);
+    const [startingSession, setStartingSession] = useState(false);
 
     const { control, handleSubmit, reset, setValue, watch, formState: { isSubmitting } } = useForm<ProjectCreateData>();
     const features = watch('features') || [];
+
+    useEffect(() => {
+        // Fetch current user's profile to get authoritative ID
+        const fetchProfile = async () => {
+            try {
+                const identity = await profileApi.getIdentity();
+                if (identity?.user_id) {
+                    setAuthUserId(identity.user_id);
+                }
+            } catch (error) {
+                console.error("Failed to fetch profile/identity", error);
+            }
+        };
+        fetchProfile();
+    }, []);
 
     useEffect(() => {
         if (!id) return;
@@ -96,12 +115,6 @@ export default function ProjectDetailsPage() {
                 const data = await projectApi.getProjectById(id as string);
                 setProject(data);
                 reset(data);
-
-                // Check ownership
-                const userId = localStorage.getItem('user_id');
-                if (userId && Number(userId) === data.auth_user_id) {
-                    setIsOwner(true);
-                }
             } catch (err) {
                 console.error("Failed to load project", err);
                 setError("Failed to load project details.");
@@ -112,6 +125,15 @@ export default function ProjectDetailsPage() {
         fetchProject();
     }, [id, reset]);
 
+    // Check ownership when project or auth user is loaded
+    useEffect(() => {
+        if (project && authUserId) {
+            if (authUserId === project.auth_user_id) {
+                setIsOwner(true);
+            }
+        }
+    }, [project, authUserId]);
+
     // Fetch team members when project loads
     useEffect(() => {
         if (!id) return;
@@ -119,15 +141,19 @@ export default function ProjectDetailsPage() {
         projectApi.getTeamByProject(id as string)
             .then(data => {
                 setTeamData(data);
-                // Check if current user is in team
-                const userId = localStorage.getItem('user_id');
-                if (userId && data.team_members.some(m => m.user_id === Number(userId))) {
-                    setIsTeamMember(true);
-                }
             })
             .catch(() => { /* No team yet */ })
             .finally(() => setTeamLoading(false));
     }, [id]);
+
+    // Check team membership
+    useEffect(() => {
+        if (teamData && authUserId) {
+            if (teamData.team_members.some(m => m.user_id === authUserId)) {
+                setIsTeamMember(true);
+            }
+        }
+    }, [teamData, authUserId]);
 
     // Fetch roadmap if tab is active
     useEffect(() => {
@@ -255,6 +281,7 @@ export default function ProjectDetailsPage() {
             return;
         }
 
+        setStartingSession(true);
         try {
             const userId = localStorage.getItem('user_id');
             // Create/Get Room
@@ -262,10 +289,13 @@ export default function ProjectDetailsPage() {
                 project_id: id as string,
                 created_by: userId || "unknown"
             });
+            // Brief delay for animation to show before navigation
+            await new Promise(resolve => setTimeout(resolve, 2500));
             // Redirect
             router.push(`/room/${id}`);
         } catch (err) {
             console.error("Failed to start session", err);
+            setStartingSession(false);
             setSnackbar({ open: true, message: 'Failed to start session. Ensure you have a plan.', severity: 'error' });
         }
     };
@@ -355,6 +385,7 @@ export default function ProjectDetailsPage() {
                                             variant="contained"
                                             startIcon={<Groups />}
                                             onClick={() => setShowTeamModal(true)}
+                                            disabled={!!(teamData && project && teamData.team_members.length >= project.team_size.max)}
                                             disableElevation
                                             sx={{
                                                 bgcolor: 'rgba(255,255,255,0.1)',
@@ -362,10 +393,16 @@ export default function ProjectDetailsPage() {
                                                 borderRadius: 2,
                                                 textTransform: 'none',
                                                 fontWeight: 600,
-                                                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' }
+                                                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+                                                '&.Mui-disabled': {
+                                                    color: 'rgba(255,255,255,0.3)',
+                                                    bgcolor: 'rgba(255,255,255,0.05)',
+                                                },
                                             }}
                                         >
-                                            Find Teammates
+                                            {teamData && project && teamData.team_members.length >= project.team_size.max
+                                                ? 'Team Full'
+                                                : 'Find Teammates'}
                                         </Button>
                                         <Button
                                             variant="contained"
@@ -440,14 +477,22 @@ export default function ProjectDetailsPage() {
                                 onClick={handleGenerateRoadmap}
                                 disabled={generatingRoadmap}
                                 sx={{
-                                    background: `linear-gradient(45deg, ${GOLD} 30%, #F0C040 90%)`,
-                                    color: 'black',
-                                    boxShadow: `0 3px 5px 2px rgba(212, 175, 55, .3)`,
+                                    background: generatingRoadmap
+                                        ? 'rgba(212, 175, 55, 0.2)'
+                                        : `linear-gradient(45deg, ${GOLD} 30%, #F0C040 90%)`,
+                                    color: generatingRoadmap ? GOLD : 'black',
+                                    boxShadow: generatingRoadmap
+                                        ? `0 0 15px rgba(212, 175, 55, 0.2)`
+                                        : `0 3px 5px 2px rgba(212, 175, 55, .3)`,
                                     textTransform: 'none',
                                     fontWeight: 700,
                                     borderRadius: 5,
                                     px: 3,
+                                    border: generatingRoadmap ? `1px solid ${GOLD}40` : 'none',
                                     width: { xs: '100%', sm: 'auto' },
+                                    '&.Mui-disabled': {
+                                        color: GOLD,
+                                    },
                                 }}
                             >
                                 {generatingRoadmap ? 'Generating Plan...' : (roadmapData ? 'Re-Generate Roadmap' : 'Generate Roadmap')}
@@ -456,7 +501,7 @@ export default function ProjectDetailsPage() {
                     </Stack>
 
                     {/* Start Session Button (Visible to Team Members/Owner when Plan exists) */}
-                    {(isOwner || isTeamMember) && roadmapData && !isEditing && (
+                    {(isOwner || isTeamMember) && roadmapData && !isEditing && !startingSession && (
                         <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
                             <Button
                                 variant="contained"
@@ -464,7 +509,7 @@ export default function ProjectDetailsPage() {
                                 onClick={handleStartSession}
                                 size="large"
                                 sx={{
-                                    bgcolor: '#10b981', // Emerald green
+                                    bgcolor: '#10b981',
                                     color: 'white',
                                     fontSize: '1.1rem',
                                     fontWeight: 700,
@@ -485,7 +530,45 @@ export default function ProjectDetailsPage() {
                         </Box>
                     )}
 
-                    {tabValue === 1 && roadmapData ? (
+                    {/* Session Starting Animation */}
+                    {startingSession && (
+                        <MotionPaper
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.5, ease: 'easeOut' }}
+                            elevation={0}
+                            sx={{
+                                borderRadius: 4,
+                                bgcolor: 'rgba(255,255,255,0.02)',
+                                border: '1px solid rgba(16, 185, 129, 0.2)',
+                                backdropFilter: 'blur(10px)',
+                                mb: 3,
+                                overflow: 'hidden',
+                                boxShadow: '0 0 40px rgba(16, 185, 129, 0.1)',
+                            }}
+                        >
+                            <AILoadingAnimation mode="session" />
+                        </MotionPaper>
+                    )}
+
+                    {generatingRoadmap ? (
+                        <MotionPaper
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                            elevation={0}
+                            sx={{
+                                borderRadius: 4,
+                                bgcolor: 'rgba(255,255,255,0.02)',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                                backdropFilter: 'blur(10px)',
+                                mb: 3,
+                                overflow: 'hidden',
+                            }}
+                        >
+                            <AILoadingAnimation mode="roadmap" />
+                        </MotionPaper>
+                    ) : tabValue === 1 && roadmapData ? (
                         <RoadmapView
                             roadmap={roadmapData.roadmap}
                             extractedFeatures={roadmapData.extracted_features || []}

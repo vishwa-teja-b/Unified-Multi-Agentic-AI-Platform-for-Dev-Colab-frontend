@@ -190,3 +190,43 @@ const PISTON_LANGUAGE_MAP: Record<string, string> = {
 export function getPistonLanguage(monacoLanguage: string): string {
     return PISTON_LANGUAGE_MAP[monacoLanguage] || monacoLanguage;
 }
+
+/**
+ * Sanitize file structure: Move children of "files" to the root directory.
+ * (Fixes bug where files were created inside other files)
+ */
+export function sanitizeFileSystem(root: FileSystemItem): FileSystemItem {
+    const { node, extracted } = cleanNode(root);
+
+    const finalRoot = { ...node };
+    if (!finalRoot.children) finalRoot.children = [];
+    finalRoot.children.push(...extracted);
+
+    return finalRoot;
+}
+
+function cleanNode(node: FileSystemItem): { node: FileSystemItem, extracted: FileSystemItem[] } {
+    if (!node.children || node.children.length === 0) {
+        return { node: { ...node }, extracted: [] };
+    }
+
+    let myExtracted: FileSystemItem[] = [];
+    const newChildren: FileSystemItem[] = [];
+
+    for (const child of node.children) {
+        const result = cleanNode(child);
+        myExtracted.push(...result.extracted);
+        newChildren.push(result.node);
+    }
+
+    const newerNode = { ...node, children: newChildren };
+
+    if (node.type === 'file') {
+        // I am a file, I cannot have children.
+        // My children (newChildren) must be extracted.
+        myExtracted.push(...newChildren);
+        newerNode.children = [];
+    }
+
+    return { node: newerNode, extracted: myExtracted };
+}

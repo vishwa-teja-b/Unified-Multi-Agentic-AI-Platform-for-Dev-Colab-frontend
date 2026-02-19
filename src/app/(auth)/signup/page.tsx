@@ -91,9 +91,9 @@ export default function SignupPage() {
             transition: {
                 y: {
                     repeat: Infinity,
-                    repeatType: "loop",
+                    repeatType: "loop" as const,
                     duration: 20,
-                    ease: "linear",
+                    ease: "linear" as const,
                 },
             },
         },
@@ -344,9 +344,9 @@ export default function SignupPage() {
                         transition={{
                             y: {
                                 repeat: Infinity,
-                                repeatType: "loop",
+                                repeatType: "loop" as const,
                                 duration: 25,
-                                ease: "linear",
+                                ease: "linear" as const,
                             },
                         }}
                         style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginTop: '-200px' }}

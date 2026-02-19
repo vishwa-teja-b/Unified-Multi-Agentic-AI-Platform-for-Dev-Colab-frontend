@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import {
     Box,
     Container,
@@ -46,7 +46,7 @@ import { DistortedBackground } from '@/components/shared/DistortedBackground';
 const GOLD = '#D4AF37';
 const MotionPaper = motion(Paper);
 
-export default function ProjectsPage() {
+function ProjectsContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [myProjects, setMyProjects] = useState<ProjectResponse[]>([]);
@@ -751,5 +751,17 @@ export default function ProjectsPage() {
                 </Alert>
             </Snackbar>
         </Box>
+    );
+}
+
+export default function ProjectsPage() {
+    return (
+        <React.Suspense fallback={
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#050505' }}>
+                <CircularProgress sx={{ color: '#D4AF37' }} />
+            </Box>
+        }>
+            <ProjectsContent />
+        </React.Suspense>
     );
 }

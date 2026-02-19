@@ -1,5 +1,7 @@
 'use client';
 
+import AILoadingAnimation from '@/components/shared/AILoadingAnimation';
+
 import React, { useState, useEffect } from 'react';
 import {
     Box,
@@ -196,12 +198,7 @@ export default function TeamRecommendationsModal({
                     {/* Content */}
                     <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
                         {loading ? (
-                            <Box sx={{ textAlign: 'center', py: 8 }}>
-                                <CircularProgress sx={{ color: '#D4AF37', mb: 2 }} />
-                                <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)' }}>
-                                    AI is finding the best teammates for your project...
-                                </Typography>
-                            </Box>
+                            <AILoadingAnimation mode="teammates" />
                         ) : error ? (
                             <Alert
                                 severity="error"

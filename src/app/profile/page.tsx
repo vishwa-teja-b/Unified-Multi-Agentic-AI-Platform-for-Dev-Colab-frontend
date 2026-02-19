@@ -12,7 +12,6 @@ import {
     CircularProgress,
     IconButton,
     Tooltip,
-    Grid,
     Paper,
 } from '@mui/material';
 import {
@@ -279,10 +278,10 @@ export default function ProfilePage() {
                         </Stack>
                     </MotionBox>
 
-                    {/* Content Grid */}
-                    <Grid container spacing={3}>
+                    {/* Content Grid - Replaced with Stack for better compatibility */}
+                    <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3}>
                         {/* Left Column - About & Skills */}
-                        <Grid item xs={12} lg={8}>
+                        <Box sx={{ flex: 2, width: '100%' }}>
                             <Stack spacing={3}>
                                 {/* About */}
                                 <MotionBox
@@ -387,10 +386,10 @@ export default function ProfilePage() {
                                     </Box>
                                 </MotionBox>
                             </Stack>
-                        </Grid>
+                        </Box>
 
                         {/* Right Column - Stats */}
-                        <Grid item xs={12} lg={4}>
+                        <Box sx={{ flex: 1, width: '100%' }}>
                             <Stack spacing={3}>
                                 {/* Experience Level */}
                                 <MotionBox
@@ -517,8 +516,8 @@ export default function ProfilePage() {
                                     </Box>
                                 </MotionBox>
                             </Stack>
-                        </Grid>
-                    </Grid>
+                        </Box>
+                    </Stack>
                 </Container>
             </Box>
         </Box>
