@@ -14,7 +14,8 @@ import {
     Person,
     Flag,
     ViewKanban,
-    List as ListIcon
+    List as ListIcon,
+    Lock,
 } from '@mui/icons-material';
 import { Sprint, Task } from '@/utils/projectApi';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,6 +24,7 @@ interface RoadmapViewProps {
     roadmap: Sprint[];
     extractedFeatures: string[];
     onTaskMove?: (taskId: string, newStatus: string) => void;
+    currentSprintNumber?: number;
 }
 
 const MotionPaper = motion(Paper);
@@ -36,16 +38,17 @@ const getPriorityColor = (priority?: string) => {
     }
 };
 
-const TaskCard = ({ task, onTaskMove, draggedTaskId, onDragStart }: {
+const TaskCard = ({ task, onTaskMove, draggedTaskId, onDragStart, locked }: {
     task: Task;
     onTaskMove?: (taskId: string, newStatus: string) => void;
     draggedTaskId: string | null;
     onDragStart: (e: React.DragEvent, taskId: string) => void;
+    locked?: boolean;
 }) => (
     <MotionPaper
         layout
-        draggable={!!onTaskMove}
-        onDragStart={(e) => onDragStart(e as unknown as React.DragEvent, task.id)}
+        draggable={!!onTaskMove && !locked}
+        onDragStart={(e) => !locked && onDragStart(e as unknown as React.DragEvent, task.id)}
         elevation={0}
         sx={{
             p: 2,
@@ -54,9 +57,12 @@ const TaskCard = ({ task, onTaskMove, draggedTaskId, onDragStart }: {
             borderColor: 'divider',
             bgcolor: 'background.paper',
             mb: 1.5,
-            cursor: onTaskMove ? 'grab' : 'default',
-            '&:active': { cursor: onTaskMove ? 'grabbing' : 'default' },
-            opacity: draggedTaskId === task.id ? 0.5 : 1
+            cursor: locked ? 'not-allowed' : onTaskMove ? 'grab' : 'default',
+            '&:active': { cursor: locked ? 'not-allowed' : onTaskMove ? 'grabbing' : 'default' },
+            opacity: locked ? 0.4 : draggedTaskId === task.id ? 0.5 : 1,
+            pointerEvents: locked ? 'none' : 'auto',
+            filter: locked ? 'grayscale(0.5)' : 'none',
+            transition: 'opacity 0.3s, filter 0.3s',
         }}
     >
         <Stack spacing={1}>
@@ -99,31 +105,51 @@ const TaskCard = ({ task, onTaskMove, draggedTaskId, onDragStart }: {
     </MotionPaper>
 );
 
-export default function RoadmapView({ roadmap, extractedFeatures, onTaskMove }: RoadmapViewProps) {
+export default function RoadmapView({ roadmap, extractedFeatures, onTaskMove, currentSprintNumber }: RoadmapViewProps) {
     const [selectedSprintIndex, setSelectedSprintIndex] = useState(0);
     const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
     const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
 
     const currentSprint = roadmap[selectedSprintIndex];
 
+    // Determine if the selected sprint is locked
+    const activeSprintNum = currentSprintNumber ?? 1;
+    const isSprintLocked = currentSprint.sprint_number > activeSprintNum;
+
     const handleDragStart = (e: React.DragEvent, taskId: string) => {
+        if (isSprintLocked) return;
         e.dataTransfer.setData('taskId', taskId);
         e.dataTransfer.effectAllowed = 'move';
         setDraggedTaskId(taskId);
     };
 
     const handleDragOver = (e: React.DragEvent) => {
+        if (isSprintLocked) return;
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
     };
 
     const handleDrop = (e: React.DragEvent, status: string) => {
+        if (isSprintLocked) return;
         e.preventDefault();
         const taskId = e.dataTransfer.getData('taskId');
         if (taskId && onTaskMove) {
             onTaskMove(taskId, status);
         }
         setDraggedTaskId(null);
+    };
+
+    const formatDate = (dateStr?: string) => {
+        if (!dateStr) return '';
+        try {
+            return new Date(dateStr).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        } catch {
+            return '';
+        }
     };
 
     return (
@@ -136,13 +162,25 @@ export default function RoadmapView({ roadmap, extractedFeatures, onTaskMove }: 
                 scrollButtons="auto"
                 sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
             >
-                {roadmap.map((sprint, i) => (
-                    <Tab
-                        key={i}
-                        label={`Sprint ${sprint.sprint_number}: ${sprint.name}`}
-                        sx={{ textTransform: 'none', fontWeight: 600 }}
-                    />
-                ))}
+                {roadmap.map((sprint, i) => {
+                    const locked = sprint.sprint_number > activeSprintNum;
+                    return (
+                        <Tab
+                            key={i}
+                            label={
+                                <Stack direction="row" alignItems="center" spacing={0.75}>
+                                    {locked && <Lock sx={{ fontSize: 14, opacity: 0.6 }} />}
+                                    <span>{`Sprint ${sprint.sprint_number}: ${sprint.name}`}</span>
+                                </Stack>
+                            }
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                opacity: locked ? 0.5 : 1,
+                            }}
+                        />
+                    );
+                })}
             </Tabs>
 
             <AnimatePresence mode="wait">
@@ -153,6 +191,41 @@ export default function RoadmapView({ roadmap, extractedFeatures, onTaskMove }: 
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.3 }}
                 >
+                    {/* Locked Sprint Banner */}
+                    {isSprintLocked && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    p: 2.5,
+                                    mb: 3,
+                                    borderRadius: 3,
+                                    bgcolor: 'rgba(255, 255, 255, 0.03)',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    backdropFilter: 'blur(12px)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2,
+                                }}
+                            >
+                                <Lock sx={{ fontSize: 28, color: 'rgba(255, 255, 255, 0.4)' }} />
+                                <Box>
+                                    <Typography variant="subtitle1" fontWeight="700" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                                        Sprint Locked
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.45)' }}>
+                                        This sprint unlocks on {formatDate(currentSprint.start_date)}.
+                                        You can preview the tasks but cannot interact with them until then.
+                                    </Typography>
+                                </Box>
+                            </Paper>
+                        </motion.div>
+                    )}
+
                     {/* Sprint Header */}
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 3 }}>
                         <Box>
@@ -164,6 +237,11 @@ export default function RoadmapView({ roadmap, extractedFeatures, onTaskMove }: 
                                 <Typography variant="body2" color="text.secondary">
                                     {currentSprint.goals.length} Goals • {currentSprint.tasks.length} Tasks
                                 </Typography>
+                                {currentSprint.start_date && (
+                                    <Typography variant="caption" color="text.secondary">
+                                        {formatDate(currentSprint.start_date)} — {formatDate(currentSprint.end_date)}
+                                    </Typography>
+                                )}
                             </Stack>
                         </Box>
                         {/* View Toggle */}
@@ -218,81 +296,85 @@ export default function RoadmapView({ roadmap, extractedFeatures, onTaskMove }: 
                     </Stack>
 
                     {/* Task Board */}
-                    {viewMode === 'kanban' ? (
-                        <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-                            {['Todo', 'In Progress', 'Done'].map((status) => (
-                                <Box
-                                    key={status}
-                                    sx={{ flex: 1, minWidth: 0 }}
-                                    onDragOver={handleDragOver}
-                                    onDrop={(e) => handleDrop(e as unknown as React.DragEvent, status)}
-                                >
-                                    <Paper
-                                        elevation={0}
-                                        sx={{
-                                            p: 2,
-                                            bgcolor: 'action.hover',
-                                            borderRadius: 3,
-                                            height: '100%',
-                                            minHeight: 300,
-                                            transition: 'background-color 0.2s',
-                                            ...(draggedTaskId && {
-                                                border: '1px dashed',
-                                                borderColor: 'primary.main',
-                                                bgcolor: 'action.selected'
-                                            })
-                                        }}
+                    <Box sx={{ position: 'relative' }}>
+                        {viewMode === 'kanban' ? (
+                            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+                                {['Todo', 'In Progress', 'Done'].map((status) => (
+                                    <Box
+                                        key={status}
+                                        sx={{ flex: 1, minWidth: 0 }}
+                                        onDragOver={!isSprintLocked ? handleDragOver : undefined}
+                                        onDrop={!isSprintLocked ? (e) => handleDrop(e as unknown as React.DragEvent, status) : undefined}
                                     >
-                                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                                            <Box sx={{
-                                                width: 8,
-                                                height: 8,
-                                                borderRadius: '50%',
-                                                bgcolor: status === 'Done' ? 'success.main' : status === 'In Progress' ? 'warning.main' : 'text.disabled'
-                                            }} />
-                                            <Typography variant="subtitle1" fontWeight="700" color="text.secondary">
-                                                {status}
-                                            </Typography>
-                                            <Chip
-                                                label={currentSprint.tasks.filter(t => t.status.toLowerCase() === status.toLowerCase() || (status === 'Todo' ? !['in progress', 'done'].includes(t.status.toLowerCase()) : false)).length}
-                                                size="small"
-                                                sx={{ height: 20, fontWeight: 700 }}
-                                            />
-                                        </Stack>
-                                        <Stack spacing={0}>
-                                            {currentSprint.tasks
-                                                .filter(t => {
-                                                    const s = t.status.toLowerCase();
-                                                    if (status === 'Todo') return !['in progress', 'done'].includes(s);
-                                                    return s === status.toLowerCase();
+                                        <Paper
+                                            elevation={0}
+                                            sx={{
+                                                p: 2,
+                                                bgcolor: 'action.hover',
+                                                borderRadius: 3,
+                                                height: '100%',
+                                                minHeight: 300,
+                                                transition: 'background-color 0.2s',
+                                                ...(draggedTaskId && !isSprintLocked && {
+                                                    border: '1px dashed',
+                                                    borderColor: 'primary.main',
+                                                    bgcolor: 'action.selected'
                                                 })
-                                                .map(task => (
-                                                    <TaskCard
-                                                        key={task.id}
-                                                        task={task}
-                                                        onTaskMove={onTaskMove}
-                                                        draggedTaskId={draggedTaskId}
-                                                        onDragStart={handleDragStart}
-                                                    />
-                                                ))}
-                                        </Stack>
-                                    </Paper>
-                                </Box>
-                            ))}
-                        </Stack>
-                    ) : (
-                        <Stack spacing={2}>
-                            {currentSprint.tasks.map(task => (
-                                <TaskCard
-                                    key={task.id}
-                                    task={task}
-                                    onTaskMove={onTaskMove}
-                                    draggedTaskId={draggedTaskId}
-                                    onDragStart={handleDragStart}
-                                />
-                            ))}
-                        </Stack>
-                    )}
+                                            }}
+                                        >
+                                            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                                                <Box sx={{
+                                                    width: 8,
+                                                    height: 8,
+                                                    borderRadius: '50%',
+                                                    bgcolor: status === 'Done' ? 'success.main' : status === 'In Progress' ? 'warning.main' : 'text.disabled'
+                                                }} />
+                                                <Typography variant="subtitle1" fontWeight="700" color="text.secondary">
+                                                    {status}
+                                                </Typography>
+                                                <Chip
+                                                    label={currentSprint.tasks.filter(t => t.status.toLowerCase() === status.toLowerCase() || (status === 'Todo' ? !['in progress', 'done'].includes(t.status.toLowerCase()) : false)).length}
+                                                    size="small"
+                                                    sx={{ height: 20, fontWeight: 700 }}
+                                                />
+                                            </Stack>
+                                            <Stack spacing={0}>
+                                                {currentSprint.tasks
+                                                    .filter(t => {
+                                                        const s = t.status.toLowerCase();
+                                                        if (status === 'Todo') return !['in progress', 'done'].includes(s);
+                                                        return s === status.toLowerCase();
+                                                    })
+                                                    .map(task => (
+                                                        <TaskCard
+                                                            key={task.id}
+                                                            task={task}
+                                                            onTaskMove={isSprintLocked ? undefined : onTaskMove}
+                                                            draggedTaskId={draggedTaskId}
+                                                            onDragStart={handleDragStart}
+                                                            locked={isSprintLocked}
+                                                        />
+                                                    ))}
+                                            </Stack>
+                                        </Paper>
+                                    </Box>
+                                ))}
+                            </Stack>
+                        ) : (
+                            <Stack spacing={2}>
+                                {currentSprint.tasks.map(task => (
+                                    <TaskCard
+                                        key={task.id}
+                                        task={task}
+                                        onTaskMove={isSprintLocked ? undefined : onTaskMove}
+                                        draggedTaskId={draggedTaskId}
+                                        onDragStart={handleDragStart}
+                                        locked={isSprintLocked}
+                                    />
+                                ))}
+                            </Stack>
+                        )}
+                    </Box>
                 </motion.div>
             </AnimatePresence>
         </Box>

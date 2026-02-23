@@ -7,10 +7,16 @@ import {
     Stack,
     Button,
     IconButton,
+    Menu,
+    MenuItem,
+    ListItemIcon,
+    ListItemText,
+    Divider as MuiDivider,
 } from '@mui/material';
 import {
     Add,
     Person,
+    Logout,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -29,6 +35,17 @@ export const TopBar = () => {
     const [hoveredPath, setHoveredPath] = useState<string | null>(null);
     const [animate, setAnimate] = useState(false);
     const hasChecked = useRef(false);
+    const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+
+    const handleLogout = () => {
+        setMenuAnchor(null);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('token');
+        sessionStorage.clear();
+        router.push('/login');
+    };
 
     const navItems = [
         { label: 'Projects', path: '/projects' },
@@ -51,7 +68,7 @@ export const TopBar = () => {
 
     // ── NO ANIMATION: render static bar immediately ──
     if (!animate) {
-        return <StaticBar navItems={navItems} hoveredPath={hoveredPath} setHoveredPath={setHoveredPath} router={router} />;
+        return <StaticBar navItems={navItems} hoveredPath={hoveredPath} setHoveredPath={setHoveredPath} router={router} menuAnchor={menuAnchor} setMenuAnchor={setMenuAnchor} handleLogout={handleLogout} />;
     }
 
     // ── WITH ANIMATION ──
@@ -219,9 +236,35 @@ export const TopBar = () => {
                                 <Box component="span" sx={{ display: { xs: 'none', lg: 'inline' } }}>New Project</Box>
                                 <Box component="span" sx={{ display: { xs: 'inline', lg: 'none' } }}>New</Box>
                             </Button>
-                            <IconButton onClick={() => router.push('/profile')} sx={{ color: 'white', '&:hover': { color: GOLD } }}>
+                            <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)} sx={{ color: 'white', '&:hover': { color: GOLD } }}>
                                 <Person />
                             </IconButton>
+                            <Menu
+                                anchorEl={menuAnchor}
+                                open={Boolean(menuAnchor)}
+                                onClose={() => setMenuAnchor(null)}
+                                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                                PaperProps={{
+                                    sx: {
+                                        bgcolor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: 2, mt: 1, minWidth: 160,
+                                        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                                    }
+                                }}
+                            >
+                                <MenuItem onClick={() => { setMenuAnchor(null); router.push('/profile'); }}
+                                    sx={{ color: 'rgba(255,255,255,0.8)', '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' } }}>
+                                    <ListItemIcon><Person sx={{ color: 'rgba(255,255,255,0.5)' }} /></ListItemIcon>
+                                    <ListItemText>Profile</ListItemText>
+                                </MenuItem>
+                                <MuiDivider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+                                <MenuItem onClick={handleLogout}
+                                    sx={{ color: '#ef4444', '&:hover': { bgcolor: 'rgba(239,68,68,0.1)' } }}>
+                                    <ListItemIcon><Logout sx={{ color: '#ef4444' }} /></ListItemIcon>
+                                    <ListItemText>Logout</ListItemText>
+                                </MenuItem>
+                            </Menu>
                         </Stack>
                     </motion.div>
                 </motion.div>
@@ -231,7 +274,7 @@ export const TopBar = () => {
 };
 
 // ── Static (no animation) version ──
-function StaticBar({ navItems, hoveredPath, setHoveredPath, router }: any) {
+function StaticBar({ navItems, hoveredPath, setHoveredPath, router, menuAnchor, setMenuAnchor, handleLogout }: any) {
     return (
         <Box sx={{
             position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)',
@@ -285,9 +328,35 @@ function StaticBar({ navItems, hoveredPath, setHoveredPath, router }: any) {
                     <Box component="span" sx={{ display: { xs: 'none', lg: 'inline' } }}>New Project</Box>
                     <Box component="span" sx={{ display: { xs: 'inline', lg: 'none' } }}>New</Box>
                 </Button>
-                <IconButton onClick={() => router.push('/profile')} sx={{ color: 'white', '&:hover': { color: GOLD } }}>
+                <IconButton onClick={(e: React.MouseEvent<HTMLElement>) => setMenuAnchor(e.currentTarget)} sx={{ color: 'white', '&:hover': { color: GOLD } }}>
                     <Person />
                 </IconButton>
+                <Menu
+                    anchorEl={menuAnchor}
+                    open={Boolean(menuAnchor)}
+                    onClose={() => setMenuAnchor(null)}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                    PaperProps={{
+                        sx: {
+                            bgcolor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: 2, mt: 1, minWidth: 160,
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                        }
+                    }}
+                >
+                    <MenuItem onClick={() => { setMenuAnchor(null); router.push('/profile'); }}
+                        sx={{ color: 'rgba(255,255,255,0.8)', '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' } }}>
+                        <ListItemIcon><Person sx={{ color: 'rgba(255,255,255,0.5)' }} /></ListItemIcon>
+                        <ListItemText>Profile</ListItemText>
+                    </MenuItem>
+                    <MuiDivider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+                    <MenuItem onClick={handleLogout}
+                        sx={{ color: '#ef4444', '&:hover': { bgcolor: 'rgba(239,68,68,0.1)' } }}>
+                        <ListItemIcon><Logout sx={{ color: '#ef4444' }} /></ListItemIcon>
+                        <ListItemText>Logout</ListItemText>
+                    </MenuItem>
+                </Menu>
             </Stack>
         </Box>
     );

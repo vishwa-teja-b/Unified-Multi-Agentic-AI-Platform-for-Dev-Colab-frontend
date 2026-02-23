@@ -79,12 +79,15 @@ export interface Sprint {
     goals: string[];
     features: string[];
     tasks: Task[];
+    start_date?: string;
+    end_date?: string;
 }
 
 export interface ProjectPlannerResponse {
     project_id: string;
     roadmap: Sprint[];
     extracted_features: string[];
+    current_sprint_number?: number;
     error?: string;
 }
 
@@ -93,6 +96,7 @@ export interface ProjectPlan {
     roadmap: Sprint[];
     created_at: string;
     updated_at?: string;
+    current_sprint_number?: number;
 }
 
 export interface SendInvitationRequest {

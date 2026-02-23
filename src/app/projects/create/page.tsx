@@ -29,6 +29,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { projectApi, ProjectCreateData } from '@/utils/projectApi';
+import { TopBar } from '@/components/shared/TopBar';
+import { DistortedBackground } from '@/components/shared/DistortedBackground';
+
+const GOLD = '#D4AF37';
 
 const steps = [
     { title: 'Concept', description: 'What are you building?' },
@@ -45,8 +49,57 @@ const COMMON_SKILLS = [
     'PostgreSQL', 'MongoDB', 'Redis', 'GraphQL',
     'Docker', 'Kubernetes', 'AWS', 'GCP', 'Azure',
     'Flutter', 'React Native', 'Swift', 'Kotlin',
-    'TensorFlow', 'PyTorch', 'LangChain'
+    'TensorFlow', 'PyTorch', 'LangChain', 'LangGraph', 'MySQL'
 ];
+
+/* ─── Shared dark-glass input styling ─── */
+const inputSx = {
+    '& .MuiOutlinedInput-root': {
+        borderRadius: 2,
+        bgcolor: 'rgba(255,255,255,0.03)',
+        '& fieldset': { borderColor: 'rgba(255,255,255,0.1)' },
+        '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
+        '&.Mui-focused fieldset': { borderColor: GOLD },
+    },
+    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.5)' },
+    '& .MuiInputBase-input': { color: 'white' },
+    '& .MuiInputBase-input::placeholder': { color: 'rgba(255,255,255,0.3)' },
+    '& .MuiSelect-icon': { color: 'rgba(255,255,255,0.4)' },
+};
+
+/* ─── Shared Autocomplete dropdown styling ─── */
+const autocompleteSx = {
+    '& .MuiAutocomplete-paper': {
+        bgcolor: '#1a1a1a',
+        border: '1px solid rgba(255,255,255,0.1)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+    },
+    '& .MuiAutocomplete-listbox': {
+        '& .MuiAutocomplete-option': {
+            color: 'rgba(255,255,255,0.8)',
+            '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' },
+            '&[aria-selected="true"]': { bgcolor: 'rgba(212,175,55,0.12)', color: GOLD },
+            '&[aria-selected="true"]:hover': { bgcolor: 'rgba(212,175,55,0.18)' },
+        },
+    },
+};
+
+const acSlotProps = {
+    paper: {
+        sx: {
+            bgcolor: '#1a1a1a',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            '& .MuiAutocomplete-option': {
+                color: 'rgba(255,255,255,0.8)',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' },
+                '&[aria-selected="true"]': { bgcolor: 'rgba(212,175,55,0.12)', color: GOLD },
+                '&[aria-selected="true"]:hover': { bgcolor: 'rgba(212,175,55,0.18)' },
+            },
+            '& .MuiAutocomplete-noOptions': { color: 'rgba(255,255,255,0.4)' },
+        },
+    },
+};
 
 export default function CreateProjectPage() {
     const router = useRouter();
@@ -108,7 +161,7 @@ export default function CreateProjectPage() {
                                     fullWidth
                                     error={!!errors.title}
                                     helperText={errors.title?.message}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                    sx={inputSx}
                                 />
                             )}
                         />
@@ -127,7 +180,7 @@ export default function CreateProjectPage() {
                                     fullWidth
                                     error={!!errors.description}
                                     helperText={errors.description?.message}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                    sx={inputSx}
                                 />
                             )}
                         />
@@ -141,10 +194,28 @@ export default function CreateProjectPage() {
                                     select
                                     label="Category"
                                     fullWidth
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                    sx={inputSx}
+                                    SelectProps={{
+                                        MenuProps: {
+                                            PaperProps: {
+                                                sx: {
+                                                    bgcolor: '#1a1a1a',
+                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    '& .MuiMenuItem-root': {
+                                                        color: 'rgba(255,255,255,0.8)',
+                                                        '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' },
+                                                        '&.Mui-selected': { bgcolor: 'rgba(212,175,55,0.12)', color: GOLD },
+                                                        '&.Mui-selected:hover': { bgcolor: 'rgba(212,175,55,0.18)' },
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    }}
                                 >
                                     {CATEGORIES.map((option) => (
-                                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                                        <MenuItem key={option} value={option}>
+                                            {option}
+                                        </MenuItem>
                                     ))}
                                 </TextField>
                             )}
@@ -166,6 +237,7 @@ export default function CreateProjectPage() {
                                     options={COMMON_SKILLS}
                                     value={value || []}
                                     onChange={(_, newValue) => onChange(newValue)}
+                                    slotProps={acSlotProps}
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
@@ -173,7 +245,7 @@ export default function CreateProjectPage() {
                                             placeholder="What technologies will you use?"
                                             error={!!errors.required_skills}
                                             helperText={errors.required_skills?.message}
-                                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                            sx={inputSx}
                                         />
                                     )}
                                     renderTags={(value, getTagProps) =>
@@ -182,7 +254,13 @@ export default function CreateProjectPage() {
                                                 {...getTagProps({ index })}
                                                 key={option}
                                                 label={option}
-                                                sx={{ bgcolor: 'primary.main', color: 'white' }}
+                                                sx={{
+                                                    fontWeight: 500,
+                                                    bgcolor: 'rgba(212,175,55,0.15)',
+                                                    color: GOLD,
+                                                    border: `1px solid ${GOLD}40`,
+                                                    '& .MuiChip-deleteIcon': { color: `${GOLD}80` },
+                                                }}
                                             />
                                         ))
                                     }
@@ -191,7 +269,7 @@ export default function CreateProjectPage() {
                         />
 
                         <Box>
-                            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
+                            <Typography variant="subtitle2" sx={{ mb: 2, color: 'rgba(255,255,255,0.5)' }}>
                                 Team Size
                             </Typography>
                             <Paper
@@ -199,7 +277,8 @@ export default function CreateProjectPage() {
                                 sx={{
                                     p: 3,
                                     borderRadius: 3,
-                                    bgcolor: 'action.hover',
+                                    bgcolor: 'rgba(255,255,255,0.03)',
+                                    border: '1px solid rgba(255,255,255,0.06)',
                                 }}
                             >
                                 <Controller
@@ -207,7 +286,7 @@ export default function CreateProjectPage() {
                                     control={control}
                                     render={({ field: { value, onChange } }) => (
                                         <>
-                                            <Typography variant="body2" sx={{ mb: 2, textAlign: 'center' }}>
+                                            <Typography variant="body2" sx={{ mb: 2, textAlign: 'center', color: 'white' }}>
                                                 <strong>{value.min} - {value.max}</strong> members
                                             </Typography>
                                             <Slider
@@ -218,7 +297,15 @@ export default function CreateProjectPage() {
                                                 valueLabelDisplay="auto"
                                                 min={1}
                                                 max={10}
-                                                sx={{ color: 'text.primary' }}
+                                                sx={{
+                                                    color: GOLD,
+                                                    '& .MuiSlider-thumb': {
+                                                        bgcolor: GOLD,
+                                                        '&:hover': { boxShadow: `0 0 0 8px rgba(212,175,55,0.16)` },
+                                                    },
+                                                    '& .MuiSlider-track': { bgcolor: GOLD },
+                                                    '& .MuiSlider-rail': { bgcolor: 'rgba(255,255,255,0.1)' },
+                                                }}
                                             />
                                         </>
                                     )}
@@ -231,7 +318,7 @@ export default function CreateProjectPage() {
                             control={control}
                             render={({ field }) => (
                                 <Box>
-                                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
+                                    <Typography variant="subtitle2" sx={{ mb: 2, color: 'rgba(255,255,255,0.5)' }}>
                                         Complexity
                                     </Typography>
                                     <Stack direction="row" spacing={1}>
@@ -240,10 +327,16 @@ export default function CreateProjectPage() {
                                                 key={level}
                                                 label={level}
                                                 onClick={() => field.onChange(level)}
-                                                color={field.value === level ? "primary" : "default"}
-                                                variant={field.value === level ? "filled" : "outlined"}
                                                 clickable
-                                                sx={{ fontWeight: 500, flex: 1, justifyContent: 'center' }}
+                                                sx={{
+                                                    fontWeight: 500,
+                                                    flex: 1,
+                                                    justifyContent: 'center',
+                                                    bgcolor: field.value === level ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.05)',
+                                                    color: field.value === level ? GOLD : 'rgba(255,255,255,0.6)',
+                                                    border: `1px solid ${field.value === level ? GOLD + '40' : 'rgba(255,255,255,0.1)'}`,
+                                                    '&:hover': { bgcolor: 'rgba(212,175,55,0.1)' },
+                                                }}
                                             />
                                         ))}
                                     </Stack>
@@ -268,13 +361,13 @@ export default function CreateProjectPage() {
                                     fullWidth
                                     error={!!errors.estimated_duration}
                                     helperText={errors.estimated_duration?.message}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                    sx={inputSx}
                                 />
                             )}
                         />
 
                         <Box>
-                            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
+                            <Typography variant="subtitle2" sx={{ mb: 2, color: 'rgba(255,255,255,0.5)' }}>
                                 Key Features
                             </Typography>
                             <TextField
@@ -283,7 +376,7 @@ export default function CreateProjectPage() {
                                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddFeature())}
                                 placeholder="Add a feature and press Enter"
                                 fullWidth
-                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 }, mb: 2 }}
+                                sx={{ ...inputSx, mb: 2 }}
                                 InputProps={{
                                     endAdornment: (
                                         <InputAdornment position="end">
@@ -291,9 +384,9 @@ export default function CreateProjectPage() {
                                                 onClick={handleAddFeature}
                                                 size="small"
                                                 sx={{
-                                                    bgcolor: 'text.primary',
-                                                    color: 'background.default',
-                                                    '&:hover': { bgcolor: 'text.secondary' }
+                                                    bgcolor: GOLD,
+                                                    color: 'black',
+                                                    '&:hover': { bgcolor: '#c9a430' }
                                                 }}
                                             >
                                                 <AddIcon fontSize="small" />
@@ -309,6 +402,11 @@ export default function CreateProjectPage() {
                                         label={feature}
                                         onDelete={() => removeFeature(index)}
                                         variant="outlined"
+                                        sx={{
+                                            color: 'rgba(255,255,255,0.7)',
+                                            borderColor: 'rgba(255,255,255,0.15)',
+                                            '& .MuiChip-deleteIcon': { color: 'rgba(255,255,255,0.3)' },
+                                        }}
                                     />
                                 ))}
                             </Box>
@@ -322,133 +420,174 @@ export default function CreateProjectPage() {
     };
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 4 }}>
-            <Container maxWidth="md">
-                {/* Header */}
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
-                    <Button
-                        component={Link}
-                        href="/projects"
-                        startIcon={<ArrowBack />}
-                        sx={{ color: 'text.secondary', textTransform: 'none' }}
+        <Box sx={{ minHeight: '100vh', bgcolor: '#050505', color: 'white', position: 'relative' }}>
+            <DistortedBackground />
+            <TopBar />
+
+            <Box sx={{ pt: '120px', pb: 8, position: 'relative', zIndex: 10 }}>
+                <Container maxWidth="md">
+                    {/* Header */}
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+                        <Button
+                            component={Link}
+                            href="/projects"
+                            startIcon={<ArrowBack />}
+                            sx={{ color: 'rgba(255,255,255,0.6)', textTransform: 'none', '&:hover': { color: 'white' } }}
+                        >
+                            Back to Projects
+                        </Button>
+                        <IconButton onClick={() => router.push('/projects')} sx={{ color: 'rgba(255,255,255,0.4)' }}>
+                            <Close />
+                        </IconButton>
+                    </Stack>
+
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: { xs: 3, md: 5 },
+                            borderRadius: 4,
+                            bgcolor: 'rgba(255,255,255,0.02)',
+                            border: '1px solid rgba(255,255,255,0.06)',
+                            backdropFilter: 'blur(20px)',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                        }}
                     >
-                        Back to Projects
-                    </Button>
-                    <IconButton onClick={() => router.push('/projects')}>
-                        <Close />
-                    </IconButton>
-                </Stack>
-
-                <Paper
-                    elevation={0}
-                    sx={{
-                        p: { xs: 3, md: 5 },
-                        borderRadius: 4,
-                        bgcolor: 'background.paper',
-                        border: theme => `1px solid ${theme.palette.divider}`,
-                    }}
-                >
-                    {/* Title */}
-                    <Box sx={{ textAlign: 'center', mb: 5 }}>
-                        <Typography variant="h4" fontWeight="800" sx={{ letterSpacing: '-0.02em', mb: 1 }}>
-                            Create New Project
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                            {steps[activeStep].description}
-                        </Typography>
-                    </Box>
-
-                    {/* Progress */}
-                    <Box sx={{ mb: 5 }}>
-                        <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
-                            <Typography variant="body2" fontWeight="600">
-                                Step {activeStep + 1} of {steps.length}
+                        {/* Title */}
+                        <Box sx={{ textAlign: 'center', mb: 5 }}>
+                            <Typography variant="h4" fontWeight="800" sx={{
+                                letterSpacing: '-0.02em',
+                                mb: 1,
+                                fontFamily: 'Space Grotesk',
+                                background: `linear-gradient(135deg, white 0%, ${GOLD} 100%)`,
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                            }}>
+                                Create New Project
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {steps[activeStep].title}
+                            <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                                {steps[activeStep].description}
                             </Typography>
-                        </Stack>
-                        <LinearProgress
-                            variant="determinate"
-                            value={progress}
-                            sx={{
-                                height: 8,
-                                borderRadius: 4,
-                                bgcolor: 'action.hover',
-                                '& .MuiLinearProgress-bar': { borderRadius: 4 }
-                            }}
-                        />
-                    </Box>
+                        </Box>
 
-                    {/* Form */}
-                    <form onSubmit={handleSubmit(onSubmit)}>
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={activeStep}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <Box sx={{ minHeight: 300 }}>
-                                    {renderStepContent(activeStep)}
-                                </Box>
-                            </motion.div>
-                        </AnimatePresence>
+                        {/* Progress */}
+                        <Box sx={{ mb: 5 }}>
+                            <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
+                                <Typography variant="body2" fontWeight="600" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                                    Step {activeStep + 1} of {steps.length}
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)' }}>
+                                    {steps[activeStep].title}
+                                </Typography>
+                            </Stack>
+                            <LinearProgress
+                                variant="determinate"
+                                value={progress}
+                                sx={{
+                                    height: 6,
+                                    borderRadius: 4,
+                                    bgcolor: 'rgba(255,255,255,0.06)',
+                                    '& .MuiLinearProgress-bar': {
+                                        borderRadius: 4,
+                                        background: `linear-gradient(90deg, ${GOLD}, #F0C040)`,
+                                    }
+                                }}
+                            />
+                        </Box>
 
-                        {/* Navigation */}
-                        <Stack direction="row" justifyContent="space-between" sx={{ mt: 5 }}>
-                            <Button
-                                disabled={activeStep === 0}
-                                onClick={() => setActiveStep(prev => prev - 1)}
-                                startIcon={<ArrowBack />}
-                                sx={{ color: 'text.secondary', textTransform: 'none' }}
-                            >
-                                Back
-                            </Button>
-
-                            {activeStep === steps.length - 1 ? (
-                                <Button
-                                    type="submit"
-                                    variant="contained"
-                                    disabled={isSubmitting}
-                                    startIcon={<Check />}
-                                    disableElevation
+                        {/* Step Indicators */}
+                        <Stack direction="row" justifyContent="center" spacing={1} sx={{ mb: 4 }}>
+                            {steps.map((s, i) => (
+                                <Box
+                                    key={i}
                                     sx={{
-                                        bgcolor: 'text.primary',
-                                        color: 'background.default',
+                                        width: 32,
+                                        height: 4,
                                         borderRadius: 2,
+                                        bgcolor: i <= activeStep ? GOLD : 'rgba(255,255,255,0.1)',
+                                        transition: 'background-color 0.3s',
+                                    }}
+                                />
+                            ))}
+                        </Stack>
+
+                        {/* Form */}
+                        <form onSubmit={(e) => e.preventDefault()}>
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={activeStep}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <Box sx={{ minHeight: 300 }}>
+                                        {renderStepContent(activeStep)}
+                                    </Box>
+                                </motion.div>
+                            </AnimatePresence>
+
+                            {/* Navigation */}
+                            <Stack direction="row" justifyContent="space-between" sx={{ mt: 5 }}>
+                                <Button
+                                    disabled={activeStep === 0}
+                                    onClick={() => setActiveStep(prev => prev - 1)}
+                                    startIcon={<ArrowBack />}
+                                    sx={{
+                                        color: 'rgba(255,255,255,0.5)',
                                         textTransform: 'none',
-                                        fontWeight: 600,
-                                        px: 4,
-                                        '&:hover': { bgcolor: 'text.secondary' }
+                                        '&:hover': { color: 'white' },
+                                        '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)' },
                                     }}
                                 >
-                                    {isSubmitting ? 'Creating...' : 'Create Project'}
+                                    Back
                                 </Button>
-                            ) : (
-                                <Button
-                                    onClick={() => setActiveStep(prev => prev + 1)}
-                                    variant="contained"
-                                    endIcon={<ArrowForward />}
-                                    disableElevation
-                                    sx={{
-                                        bgcolor: 'text.primary',
-                                        color: 'background.default',
-                                        borderRadius: 2,
-                                        textTransform: 'none',
-                                        fontWeight: 600,
-                                        px: 4,
-                                        '&:hover': { bgcolor: 'text.secondary' }
-                                    }}
-                                >
-                                    Continue
-                                </Button>
-                            )}
-                        </Stack>
-                    </form>
-                </Paper>
-            </Container>
+
+                                {activeStep === steps.length - 1 ? (
+                                    <Button
+                                        type="button"
+                                        variant="contained"
+                                        disabled={isSubmitting}
+                                        startIcon={<Check />}
+                                        disableElevation
+                                        onClick={handleSubmit(onSubmit)}
+                                        sx={{
+                                            background: `linear-gradient(45deg, ${GOLD} 30%, #F0C040 90%)`,
+                                            color: 'black',
+                                            borderRadius: 2,
+                                            textTransform: 'none',
+                                            fontWeight: 700,
+                                            px: 4,
+                                            boxShadow: `0 3px 12px rgba(212,175,55,0.3)`,
+                                            '&:hover': { background: `linear-gradient(45deg, #c9a430 30%, ${GOLD} 90%)` },
+                                        }}
+                                    >
+                                        {isSubmitting ? 'Creating...' : 'Create Project'}
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        onClick={() => setActiveStep(prev => prev + 1)}
+                                        variant="contained"
+                                        endIcon={<ArrowForward />}
+                                        disableElevation
+                                        sx={{
+                                            background: `linear-gradient(45deg, ${GOLD} 30%, #F0C040 90%)`,
+                                            color: 'black',
+                                            borderRadius: 2,
+                                            textTransform: 'none',
+                                            fontWeight: 700,
+                                            px: 4,
+                                            boxShadow: `0 3px 12px rgba(212,175,55,0.3)`,
+                                            '&:hover': { background: `linear-gradient(45deg, #c9a430 30%, ${GOLD} 90%)` },
+                                        }}
+                                    >
+                                        Continue
+                                    </Button>
+                                )}
+                            </Stack>
+                        </form>
+                    </Paper>
+                </Container>
+            </Box>
         </Box>
     );
 }

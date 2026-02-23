@@ -17,6 +17,7 @@ import {
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { projectApi, InvitationResponse } from '@/utils/projectApi';
+import { profileApi } from '@/utils/profileApi';
 import { TopBar } from '@/components/shared/TopBar';
 import { DistortedBackground } from '@/components/shared/DistortedBackground';
 
@@ -186,9 +187,18 @@ const DashboardContent = () => {
     const [invites, setInvites] = useState<InvitationResponse[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const router = useRouter();
+
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // Check if profile is complete — redirect if not
+                const profile = await profileApi.getProfile();
+                if (!profile || !profile.primary_skills?.length || !profile.experience_level) {
+                    router.push('/profile/create');
+                    return;
+                }
+
                 const projectsData = await projectApi.getMyProjects();
                 setProjects(projectsData.slice(0, 3));
 
@@ -204,7 +214,7 @@ const DashboardContent = () => {
         };
 
         fetchData();
-    }, []);
+    }, [router]);
 
     return (
         <Box sx={{ pl: { xs: 4, md: 8, lg: 12 }, pr: { xs: 3, md: 6 }, pb: 10, position: 'relative', zIndex: 10 }}>

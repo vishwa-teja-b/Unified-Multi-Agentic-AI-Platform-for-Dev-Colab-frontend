@@ -186,13 +186,23 @@ export default function RoomPage() {
             socketService.joinRoom(roomId, username || currentUser?.username, userId);
 
             socketService.on("join_accepted", (data: any) => {
-                if (data.users) setConnectedUsers(data.users);
+                if (data.users) {
+                    // Deduplicate by userId — keep only the latest entry per user
+                    const seen = new Map();
+                    for (const u of data.users) {
+                        seen.set(u.userId, u);
+                    }
+                    setConnectedUsers(Array.from(seen.values()));
+                }
             });
 
             socketService.on("user_joined", (data: any) => {
                 setConnectedUsers((prev) => {
-                    if (prev.some((u) => u.socketId === data.user.socketId)) return prev;
-                    return [...prev, data.user];
+                    // Remove stale entries for the same userId or socketId
+                    const filtered = prev.filter(
+                        (u) => u.socketId !== data.user.socketId && u.userId !== data.user.userId
+                    );
+                    return [...filtered, data.user];
                 });
             });
 

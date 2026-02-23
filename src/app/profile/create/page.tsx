@@ -31,6 +31,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { profileApi, ProfileData } from '@/utils/profileApi';
+import { TopBar } from '@/components/shared/TopBar';
+import { DistortedBackground } from '@/components/shared/DistortedBackground';
+
+const GOLD = '#D4AF37';
 
 const steps = [
     { title: 'Basics', description: 'Tell us about yourself' },
@@ -58,6 +62,37 @@ const LANGUAGE_OPTIONS = [
     'English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese', 'Korean',
     'Hindi', 'Portuguese', 'Russian', 'Arabic', 'Italian', 'Telugu', 'Tamil', 'Kannada', 'Malayalam',
 ];
+
+/* ─── Shared dark-glass input styling ─── */
+const inputSx = {
+    '& .MuiOutlinedInput-root': {
+        borderRadius: 2,
+        bgcolor: 'rgba(255,255,255,0.03)',
+        '& fieldset': { borderColor: 'rgba(255,255,255,0.1)' },
+        '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
+        '&.Mui-focused fieldset': { borderColor: GOLD },
+    },
+    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.5)' },
+    '& .MuiInputBase-input': { color: 'white' },
+    '& .MuiInputBase-input::placeholder': { color: 'rgba(255,255,255,0.3)' },
+};
+
+const acSlotProps = {
+    paper: {
+        sx: {
+            bgcolor: '#1a1a1a',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            '& .MuiAutocomplete-option': {
+                color: 'rgba(255,255,255,0.8)',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' },
+                '&[aria-selected="true"]': { bgcolor: 'rgba(212,175,55,0.12)', color: GOLD },
+                '&[aria-selected="true"]:hover': { bgcolor: 'rgba(212,175,55,0.18)' },
+            },
+            '& .MuiAutocomplete-noOptions': { color: 'rgba(255,255,255,0.4)' },
+        },
+    },
+};
 
 export default function CreateProfilePage() {
     const [activeStep, setActiveStep] = useState(0);
@@ -139,9 +174,11 @@ export default function CreateProfilePage() {
                                 sx={{
                                     width: 100,
                                     height: 100,
-                                    bgcolor: 'primary.main',
+                                    bgcolor: 'rgba(212,175,55,0.15)',
+                                    color: GOLD,
                                     fontSize: '2.5rem',
                                     fontWeight: 700,
+                                    border: `2px solid ${GOLD}40`,
                                 }}
                             >
                                 {watch('name')?.[0]?.toUpperCase() || <Person />}
@@ -160,7 +197,7 @@ export default function CreateProfilePage() {
                                         fullWidth
                                         error={!!errors.name}
                                         helperText={errors.name?.message}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                        sx={inputSx}
                                     />
                                 )}
                             />
@@ -173,12 +210,17 @@ export default function CreateProfilePage() {
                                         {...field}
                                         label="Username"
                                         fullWidth
+                                        disabled={isEditMode}
                                         InputProps={{
-                                            startAdornment: <InputAdornment position="start">@</InputAdornment>
+                                            startAdornment: <InputAdornment position="start"><Typography sx={{ color: 'rgba(255,255,255,0.4)' }}>@</Typography></InputAdornment>
                                         }}
                                         error={!!errors.username}
-                                        helperText={errors.username?.message}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                        helperText={isEditMode ? 'Username cannot be changed' : errors.username?.message}
+                                        sx={{
+                                            ...inputSx,
+                                            '& .MuiInputBase-input.Mui-disabled': { WebkitTextFillColor: 'rgba(255,255,255,0.5)' },
+                                            '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.06)' },
+                                        }}
                                     />
                                 )}
                             />
@@ -194,9 +236,14 @@ export default function CreateProfilePage() {
                                     label="Email"
                                     type="email"
                                     fullWidth
+                                    disabled={isEditMode}
                                     error={!!errors.email}
-                                    helperText={errors.email?.message}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                    helperText={isEditMode ? 'Email cannot be changed' : errors.email?.message}
+                                    sx={{
+                                        ...inputSx,
+                                        '& .MuiInputBase-input.Mui-disabled': { WebkitTextFillColor: 'rgba(255,255,255,0.5)' },
+                                        '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.06)' },
+                                    }}
                                 />
                             )}
                         />
@@ -204,7 +251,7 @@ export default function CreateProfilePage() {
                         <Controller
                             name="bio"
                             control={control}
-                            rules={{ required: 'Bio is required', maxLength: { value: 300, message: 'Max 300 characters' } }}
+                            rules={{ maxLength: { value: 300, message: 'Max 300 characters' } }}
                             render={({ field }) => (
                                 <TextField
                                     {...field}
@@ -215,7 +262,7 @@ export default function CreateProfilePage() {
                                     placeholder="Tell us about yourself, your passion, and what you build..."
                                     error={!!errors.bio}
                                     helperText={errors.bio?.message || `${field.value?.length || 0}/300`}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                    sx={inputSx}
                                 />
                             )}
                         />
@@ -224,25 +271,17 @@ export default function CreateProfilePage() {
                             <Controller
                                 name="city"
                                 control={control}
+                                rules={{ required: 'City is required' }}
                                 render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="City"
-                                        fullWidth
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                                    />
+                                    <TextField {...field} label="City" fullWidth error={!!errors.city} helperText={errors.city?.message} sx={inputSx} />
                                 )}
                             />
                             <Controller
                                 name="country"
                                 control={control}
+                                rules={{ required: 'Country is required' }}
                                 render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Country"
-                                        fullWidth
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                                    />
+                                    <TextField {...field} label="Country" fullWidth error={!!errors.country} helperText={errors.country?.message} sx={inputSx} />
                                 )}
                             />
                         </Stack>
@@ -262,6 +301,7 @@ export default function CreateProfilePage() {
                                     options={SKILL_OPTIONS}
                                     value={value || []}
                                     onChange={(_, newValue) => onChange(newValue)}
+                                    slotProps={acSlotProps}
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
@@ -269,7 +309,7 @@ export default function CreateProfilePage() {
                                             placeholder="Your core technologies"
                                             error={!!errors.primary_skills}
                                             helperText={errors.primary_skills?.message}
-                                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                            sx={inputSx}
                                         />
                                     )}
                                     renderTags={(value, getTagProps) =>
@@ -278,10 +318,12 @@ export default function CreateProfilePage() {
                                                 {...getTagProps({ index })}
                                                 key={option}
                                                 label={option}
-                                                color="primary"
                                                 sx={{
                                                     fontWeight: 500,
-                                                    '& .MuiChip-label': { color: 'primary.contrastText' }
+                                                    bgcolor: 'rgba(212,175,55,0.15)',
+                                                    color: GOLD,
+                                                    border: `1px solid ${GOLD}40`,
+                                                    '& .MuiChip-deleteIcon': { color: `${GOLD}80` },
                                                 }}
                                             />
                                         ))
@@ -293,18 +335,22 @@ export default function CreateProfilePage() {
                         <Controller
                             name="secondary_skills"
                             control={control}
+                            rules={{ validate: (v: string[]) => (v && v.length > 0) || 'Select at least 1 secondary skill' }}
                             render={({ field: { onChange, value } }) => (
                                 <Autocomplete
                                     multiple
                                     options={SKILL_OPTIONS}
                                     value={value || []}
                                     onChange={(_, newValue) => onChange(newValue)}
+                                    slotProps={acSlotProps}
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
                                             label="Secondary Skills"
                                             placeholder="Technologies you're familiar with"
-                                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                            error={!!errors.secondary_skills}
+                                            helperText={(errors.secondary_skills as any)?.message}
+                                            sx={inputSx}
                                         />
                                     )}
                                     renderTags={(value, getTagProps) =>
@@ -314,6 +360,10 @@ export default function CreateProfilePage() {
                                                 key={option}
                                                 label={option}
                                                 variant="outlined"
+                                                sx={{
+                                                    color: 'rgba(255,255,255,0.7)',
+                                                    borderColor: 'rgba(255,255,255,0.15)',
+                                                }}
                                             />
                                         ))
                                     }
@@ -322,7 +372,7 @@ export default function CreateProfilePage() {
                         />
 
                         <Box>
-                            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
+                            <Typography variant="subtitle2" sx={{ mb: 2, color: 'rgba(255,255,255,0.5)' }}>
                                 Experience Level
                             </Typography>
                             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -333,14 +383,19 @@ export default function CreateProfilePage() {
                                             key={level}
                                             name="experience_level"
                                             control={control}
+                                            rules={{ required: 'Experience level is required' }}
                                             render={({ field }) => (
                                                 <Chip
                                                     label={level}
                                                     onClick={() => field.onChange(levelKey)}
-                                                    color={field.value === levelKey ? "primary" : "default"}
-                                                    variant={field.value === levelKey ? "filled" : "outlined"}
                                                     clickable
-                                                    sx={{ fontWeight: 500 }}
+                                                    sx={{
+                                                        fontWeight: 500,
+                                                        bgcolor: field.value === levelKey ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.05)',
+                                                        color: field.value === levelKey ? GOLD : 'rgba(255,255,255,0.6)',
+                                                        border: `1px solid ${field.value === levelKey ? GOLD + '40' : 'rgba(255,255,255,0.1)'}`,
+                                                        '&:hover': { bgcolor: 'rgba(212,175,55,0.1)' },
+                                                    }}
                                                 />
                                             )}
                                         />
@@ -357,6 +412,7 @@ export default function CreateProfilePage() {
                         <Controller
                             name="interests"
                             control={control}
+                            rules={{ validate: (v: string[]) => (v && v.length > 0) || 'Add at least 1 interest' }}
                             render={({ field: { onChange, value } }) => (
                                 <Autocomplete
                                     multiple
@@ -364,12 +420,15 @@ export default function CreateProfilePage() {
                                     options={INTEREST_OPTIONS}
                                     value={value || []}
                                     onChange={(_, newValue) => onChange(newValue)}
+                                    slotProps={acSlotProps}
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
                                             label="Interests & Passions"
                                             placeholder="E.g. AI, Open Source, Startups"
-                                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                            error={!!errors.interests}
+                                            helperText={(errors.interests as any)?.message}
+                                            sx={inputSx}
                                         />
                                     )}
                                     renderTags={(value, getTagProps) =>
@@ -378,8 +437,11 @@ export default function CreateProfilePage() {
                                                 {...getTagProps({ index })}
                                                 key={option}
                                                 label={option}
-                                                color="secondary"
                                                 variant="outlined"
+                                                sx={{
+                                                    color: 'rgba(255,255,255,0.7)',
+                                                    borderColor: 'rgba(255,255,255,0.15)',
+                                                }}
                                             />
                                         ))
                                     }
@@ -390,6 +452,7 @@ export default function CreateProfilePage() {
                         <Controller
                             name="languages"
                             control={control}
+                            rules={{ validate: (v: string[]) => (v && v.length > 0) || 'Add at least 1 language' }}
                             render={({ field: { onChange, value } }) => (
                                 <Autocomplete
                                     multiple
@@ -397,12 +460,15 @@ export default function CreateProfilePage() {
                                     options={LANGUAGE_OPTIONS}
                                     value={value || []}
                                     onChange={(_, newValue) => onChange(newValue)}
+                                    slotProps={acSlotProps}
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
                                             label="Languages Spoken"
                                             placeholder="E.g. English, Spanish"
-                                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                            error={!!errors.languages}
+                                            helperText={(errors.languages as any)?.message}
+                                            sx={inputSx}
                                         />
                                     )}
                                     renderTags={(value, getTagProps) =>
@@ -412,6 +478,10 @@ export default function CreateProfilePage() {
                                                 key={option}
                                                 label={option}
                                                 variant="outlined"
+                                                sx={{
+                                                    color: 'rgba(255,255,255,0.7)',
+                                                    borderColor: 'rgba(255,255,255,0.15)',
+                                                }}
                                             />
                                         ))
                                     }
@@ -423,29 +493,35 @@ export default function CreateProfilePage() {
                             <Controller
                                 name="availability_hours"
                                 control={control}
+                                rules={{ required: 'Availability is required' }}
                                 render={({ field }) => (
                                     <TextField
                                         {...field}
                                         type="number"
                                         label="Weekly Availability"
                                         fullWidth
+                                        error={!!errors.availability_hours}
+                                        helperText={errors.availability_hours?.message}
                                         InputProps={{
-                                            endAdornment: <InputAdornment position="end">hrs/week</InputAdornment>
+                                            endAdornment: <InputAdornment position="end"><Typography sx={{ color: 'rgba(255,255,255,0.4)' }}>hrs/week</Typography></InputAdornment>
                                         }}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                        sx={inputSx}
                                     />
                                 )}
                             />
                             <Controller
                                 name="preferred_role"
                                 control={control}
+                                rules={{ required: 'Preferred role is required' }}
                                 render={({ field }) => (
                                     <TextField
                                         {...field}
                                         label="Preferred Role"
                                         placeholder="e.g. Full Stack Developer"
                                         fullWidth
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                        error={!!errors.preferred_role}
+                                        helperText={errors.preferred_role?.message}
+                                        sx={inputSx}
                                     />
                                 )}
                             />
@@ -456,7 +532,7 @@ export default function CreateProfilePage() {
             case 3:
                 return (
                     <Stack spacing={3}>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        <Typography variant="body2" sx={{ mb: 1, color: 'rgba(255,255,255,0.5)' }}>
                             Connect your social profiles so teams can learn more about you.
                         </Typography>
 
@@ -472,12 +548,12 @@ export default function CreateProfilePage() {
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
-                                                <GitHub sx={{ mr: 0.5 }} />
-                                                <Typography variant="body2" color="text.secondary">github.com/</Typography>
+                                                <GitHub sx={{ mr: 0.5, color: 'rgba(255,255,255,0.5)' }} />
+                                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)' }}>github.com/</Typography>
                                             </InputAdornment>
                                         )
                                     }}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                    sx={inputSx}
                                 />
                             )}
                         />
@@ -494,12 +570,12 @@ export default function CreateProfilePage() {
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
-                                                <LinkedIn sx={{ mr: 0.5 }} />
-                                                <Typography variant="body2" color="text.secondary">linkedin.com/in/</Typography>
+                                                <LinkedIn sx={{ mr: 0.5, color: 'rgba(255,255,255,0.5)' }} />
+                                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)' }}>linkedin.com/in/</Typography>
                                             </InputAdornment>
                                         )
                                     }}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                    sx={inputSx}
                                 />
                             )}
                         />
@@ -516,12 +592,12 @@ export default function CreateProfilePage() {
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
-                                                <Language sx={{ mr: 0.5 }} />
-                                                <Typography variant="body2" color="text.secondary">https://</Typography>
+                                                <Language sx={{ mr: 0.5, color: 'rgba(255,255,255,0.5)' }} />
+                                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)' }}>https://</Typography>
                                             </InputAdornment>
                                         )
                                     }}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                    sx={inputSx}
                                 />
                             )}
                         />
@@ -534,136 +610,174 @@ export default function CreateProfilePage() {
     };
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 4 }}>
-            <Container maxWidth="md">
-                {/* Header */}
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
-                    <Button
-                        component={Link}
-                        href="/profile"
-                        startIcon={<ArrowBack />}
-                        sx={{ color: 'text.secondary', textTransform: 'none' }}
+        <Box sx={{ minHeight: '100vh', bgcolor: '#050505', color: 'white', position: 'relative' }}>
+            <DistortedBackground />
+            <TopBar />
+
+            <Box sx={{ pt: '120px', pb: 8, position: 'relative', zIndex: 10 }}>
+                <Container maxWidth="md">
+                    {/* Header */}
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+                        <Button
+                            component={Link}
+                            href="/profile"
+                            startIcon={<ArrowBack />}
+                            sx={{ color: 'rgba(255,255,255,0.6)', textTransform: 'none', '&:hover': { color: 'white' } }}
+                        >
+                            Back to Profile
+                        </Button>
+                        <IconButton onClick={() => router.push('/profile')} sx={{ color: 'rgba(255,255,255,0.4)' }}>
+                            <Close />
+                        </IconButton>
+                    </Stack>
+
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: { xs: 3, md: 5 },
+                            borderRadius: 4,
+                            bgcolor: 'rgba(255,255,255,0.02)',
+                            border: '1px solid rgba(255,255,255,0.06)',
+                            backdropFilter: 'blur(20px)',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                        }}
                     >
-                        Back to Profile
-                    </Button>
-                    <IconButton onClick={() => router.push('/profile')}>
-                        <Close />
-                    </IconButton>
-                </Stack>
-
-                <Paper
-                    elevation={0}
-                    sx={{
-                        p: { xs: 3, md: 5 },
-                        borderRadius: 4,
-                        bgcolor: 'background.paper',
-                        border: theme => `1px solid ${theme.palette.divider}`,
-                    }}
-                >
-                    {/* Title */}
-                    <Box sx={{ textAlign: 'center', mb: 5 }}>
-                        <Typography variant="h4" fontWeight="800" sx={{ letterSpacing: '-0.02em', mb: 1 }}>
-                            {isEditMode ? 'Update Your Profile' : 'Create Your Profile'}
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                            {steps[activeStep].description}
-                        </Typography>
-                    </Box>
-
-                    {/* Progress Bar */}
-                    <Box sx={{ mb: 5 }}>
-                        <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
-                            <Typography variant="body2" fontWeight="600">
-                                Step {activeStep + 1} of {steps.length}
+                        {/* Title */}
+                        <Box sx={{ textAlign: 'center', mb: 5 }}>
+                            <Typography variant="h4" fontWeight="800" sx={{
+                                letterSpacing: '-0.02em',
+                                mb: 1,
+                                fontFamily: 'Space Grotesk',
+                                background: `linear-gradient(135deg, white 0%, ${GOLD} 100%)`,
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                            }}>
+                                {isEditMode ? 'Update Your Profile' : 'Create Your Profile'}
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {steps[activeStep].title}
+                            <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                                {steps[activeStep].description}
                             </Typography>
-                        </Stack>
-                        <LinearProgress
-                            variant="determinate"
-                            value={progress}
-                            sx={{
-                                height: 8,
-                                borderRadius: 4,
-                                bgcolor: 'action.hover',
-                                '& .MuiLinearProgress-bar': {
+                        </Box>
+
+                        {/* Progress Bar */}
+                        <Box sx={{ mb: 5 }}>
+                            <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
+                                <Typography variant="body2" fontWeight="600" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                                    Step {activeStep + 1} of {steps.length}
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)' }}>
+                                    {steps[activeStep].title}
+                                </Typography>
+                            </Stack>
+                            <LinearProgress
+                                variant="determinate"
+                                value={progress}
+                                sx={{
+                                    height: 6,
                                     borderRadius: 4,
-                                }
-                            }}
-                        />
-                    </Box>
+                                    bgcolor: 'rgba(255,255,255,0.06)',
+                                    '& .MuiLinearProgress-bar': {
+                                        borderRadius: 4,
+                                        background: `linear-gradient(90deg, ${GOLD}, #F0C040)`,
+                                    }
+                                }}
+                            />
+                        </Box>
 
-                    {/* Form Content */}
-                    <div>
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={activeStep}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <Box sx={{ minHeight: 320 }}>
-                                    {renderStepContent(activeStep)}
-                                </Box>
-                            </motion.div>
-                        </AnimatePresence>
-
-                        {/* Navigation Buttons */}
-                        <Stack direction="row" justifyContent="space-between" sx={{ mt: 5 }}>
-                            <Button
-                                disabled={activeStep === 0}
-                                onClick={() => setActiveStep(prev => prev - 1)}
-                                startIcon={<ArrowBack />}
-                                sx={{ color: 'text.secondary', textTransform: 'none' }}
-                            >
-                                Back
-                            </Button>
-
-                            {activeStep === steps.length - 1 ? (
-                                <Button
-                                    type="button"
-                                    variant="contained"
-                                    disabled={isSubmitting}
-                                    startIcon={<Check />}
-                                    disableElevation
-                                    onClick={handleSubmit(onSubmit)}
+                        {/* Step Indicators */}
+                        <Stack direction="row" justifyContent="center" spacing={1} sx={{ mb: 4 }}>
+                            {steps.map((s, i) => (
+                                <Box
+                                    key={i}
                                     sx={{
-                                        bgcolor: 'text.primary',
-                                        color: 'background.default',
+                                        width: 32,
+                                        height: 4,
                                         borderRadius: 2,
-                                        textTransform: 'none',
-                                        fontWeight: 600,
-                                        px: 4,
-                                        '&:hover': { bgcolor: 'text.secondary' }
+                                        bgcolor: i <= activeStep ? GOLD : 'rgba(255,255,255,0.1)',
+                                        transition: 'background-color 0.3s',
                                     }}
-                                >
-                                    {isSubmitting ? 'Saving...' : (isEditMode ? 'Update Profile' : 'Complete Profile')}
-                                </Button>
-                            ) : (
-                                <Button
-                                    onClick={() => setActiveStep(prev => prev + 1)}
-                                    variant="contained"
-                                    endIcon={<ArrowForward />}
-                                    disableElevation
-                                    sx={{
-                                        bgcolor: 'text.primary',
-                                        color: 'background.default',
-                                        borderRadius: 2,
-                                        textTransform: 'none',
-                                        fontWeight: 600,
-                                        px: 4,
-                                        '&:hover': { bgcolor: 'text.secondary' }
-                                    }}
-                                >
-                                    Continue
-                                </Button>
-                            )}
+                                />
+                            ))}
                         </Stack>
-                    </div>
-                </Paper>
-            </Container>
+
+                        {/* Form Content */}
+                        <div>
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={activeStep}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <Box sx={{ minHeight: 320 }}>
+                                        {renderStepContent(activeStep)}
+                                    </Box>
+                                </motion.div>
+                            </AnimatePresence>
+
+                            {/* Navigation Buttons */}
+                            <Stack direction="row" justifyContent="space-between" sx={{ mt: 5 }}>
+                                <Button
+                                    disabled={activeStep === 0}
+                                    onClick={() => setActiveStep(prev => prev - 1)}
+                                    startIcon={<ArrowBack />}
+                                    sx={{
+                                        color: 'rgba(255,255,255,0.5)',
+                                        textTransform: 'none',
+                                        '&:hover': { color: 'white' },
+                                        '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)' },
+                                    }}
+                                >
+                                    Back
+                                </Button>
+
+                                {activeStep === steps.length - 1 ? (
+                                    <Button
+                                        type="button"
+                                        variant="contained"
+                                        disabled={isSubmitting}
+                                        startIcon={<Check />}
+                                        disableElevation
+                                        onClick={handleSubmit(onSubmit)}
+                                        sx={{
+                                            background: `linear-gradient(45deg, ${GOLD} 30%, #F0C040 90%)`,
+                                            color: 'black',
+                                            borderRadius: 2,
+                                            textTransform: 'none',
+                                            fontWeight: 700,
+                                            px: 4,
+                                            boxShadow: `0 3px 12px rgba(212,175,55,0.3)`,
+                                            '&:hover': { background: `linear-gradient(45deg, #c9a430 30%, ${GOLD} 90%)` },
+                                        }}
+                                    >
+                                        {isSubmitting ? 'Saving...' : (isEditMode ? 'Update Profile' : 'Complete Profile')}
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        onClick={() => setActiveStep(prev => prev + 1)}
+                                        variant="contained"
+                                        endIcon={<ArrowForward />}
+                                        disableElevation
+                                        sx={{
+                                            background: `linear-gradient(45deg, ${GOLD} 30%, #F0C040 90%)`,
+                                            color: 'black',
+                                            borderRadius: 2,
+                                            textTransform: 'none',
+                                            fontWeight: 700,
+                                            px: 4,
+                                            boxShadow: `0 3px 12px rgba(212,175,55,0.3)`,
+                                            '&:hover': { background: `linear-gradient(45deg, #c9a430 30%, ${GOLD} 90%)` },
+                                        }}
+                                    >
+                                        Continue
+                                    </Button>
+                                )}
+                            </Stack>
+                        </div>
+                    </Paper>
+                </Container>
+            </Box>
         </Box>
     );
 }

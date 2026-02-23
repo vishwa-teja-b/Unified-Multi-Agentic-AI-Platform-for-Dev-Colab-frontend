@@ -83,12 +83,17 @@ export default function ProjectDetailsPage() {
     const [teamLoading, setTeamLoading] = useState(false);
     const [isTeamMember, setIsTeamMember] = useState(false);
 
+    // Delete state
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+
     // Roadmap state
     const [tabValue, setTabValue] = useState(0);
     const [roadmapData, setRoadmapData] = useState<ProjectPlannerResponse | null>(null);
     const [generatingRoadmap, setGeneratingRoadmap] = useState(false);
     const [fetchedRoadmap, setFetchedRoadmap] = useState(false);
     const [startingSession, setStartingSession] = useState(false);
+    const [currentSprintNumber, setCurrentSprintNumber] = useState<number>(1);
 
     const { control, handleSubmit, reset, setValue, watch, formState: { isSubmitting } } = useForm<ProjectCreateData>();
     const features = watch('features') || [];
@@ -165,6 +170,7 @@ export default function ProjectDetailsPage() {
                         roadmap: data.roadmap,
                         extracted_features: [] // Plan doesn't store this, but view needs it? Optional.
                     });
+                    setCurrentSprintNumber(data.current_sprint_number ?? 1);
                     setFetchedRoadmap(true);
                 })
                 .catch(() => {
@@ -184,15 +190,16 @@ export default function ProjectDetailsPage() {
         }
     };
 
-    const handleDelete = async () => {
-        if (confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
-            try {
-                await projectApi.deleteProject(id as string);
-                router.push('/projects');
-            } catch (err) {
-                console.error("Delete failed", err);
-                setError("Failed to delete project.");
-            }
+    const handleConfirmDelete = async () => {
+        setDeleteLoading(true);
+        try {
+            await projectApi.deleteProject(id as string);
+            router.push('/projects');
+        } catch (err) {
+            console.error("Delete failed", err);
+            setError("Failed to delete project.");
+            setDeleteLoading(false);
+            setShowDeleteDialog(false);
         }
     };
 
@@ -236,6 +243,7 @@ export default function ProjectDetailsPage() {
         try {
             const data = await projectApi.generateRoadmap(project.id);
             setRoadmapData(data);
+            setCurrentSprintNumber(data.current_sprint_number ?? 1);
             setTabValue(1); // Switch to Roadmap tab
             setSnackbar({ open: true, message: 'Roadmap generated successfully!', severity: 'success' });
         } catch (err) {
@@ -375,7 +383,7 @@ export default function ProjectDetailsPage() {
                                     <>
                                         <Button
                                             startIcon={<Delete />}
-                                            onClick={handleDelete}
+                                            onClick={() => setShowDeleteDialog(true)}
                                             color="error"
                                             sx={{ textTransform: 'none', color: '#ef4444' }}
                                         >
@@ -426,6 +434,7 @@ export default function ProjectDetailsPage() {
                                         variant="contained"
                                         startIcon={<PersonAdd />}
                                         onClick={() => setShowJoinDialog(true)}
+                                        disabled={isTeamMember}
                                         disableElevation
                                         sx={{
                                             bgcolor: GOLD,
@@ -435,10 +444,14 @@ export default function ProjectDetailsPage() {
                                             py: 1.2,
                                             textTransform: 'none',
                                             fontWeight: 600,
-                                            '&:hover': { bgcolor: '#F0C040' }
+                                            '&:hover': { bgcolor: '#F0C040' },
+                                            '&.Mui-disabled': {
+                                                bgcolor: 'rgba(255,255,255,0.08)',
+                                                color: 'rgba(255,255,255,0.35)',
+                                            },
                                         }}
                                     >
-                                        Request to Join
+                                        {isTeamMember ? 'Already a Member' : 'Request to Join'}
                                     </Button>
                                 )}
                             </Stack>
@@ -573,6 +586,7 @@ export default function ProjectDetailsPage() {
                             roadmap={roadmapData.roadmap}
                             extractedFeatures={roadmapData.extracted_features || []}
                             onTaskMove={isOwner ? handleTaskMove : undefined}
+                            currentSprintNumber={currentSprintNumber}
                         />
                     ) : (
                         <form onSubmit={handleSubmit(handleUpdate)}>
@@ -1031,6 +1045,58 @@ export default function ProjectDetailsPage() {
                     />
                 )}
 
+                {/* Delete Confirmation Dialog */}
+                <Dialog
+                    open={showDeleteDialog}
+                    onClose={() => !deleteLoading && setShowDeleteDialog(false)}
+                    maxWidth="sm"
+                    fullWidth
+                    PaperProps={{
+                        sx: {
+                            borderRadius: 4,
+                            bgcolor: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                            backdropFilter: 'blur(16px)',
+                            color: 'white',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+                        }
+                    }}
+                >
+                    <DialogTitle sx={{ fontWeight: 700, fontFamily: 'Space Grotesk' }}>
+                        Delete Project
+                    </DialogTitle>
+                    <DialogContent>
+                        <Typography sx={{ color: 'rgba(255,255,255,0.7)', mt: 1 }}>
+                            Are you sure you want to delete this project? This action cannot be undone.
+                        </Typography>
+                    </DialogContent>
+                    <DialogActions sx={{ px: 3, pb: 2 }}>
+                        <Button
+                            onClick={() => setShowDeleteDialog(false)}
+                            disabled={deleteLoading}
+                            sx={{ textTransform: 'none', color: 'rgba(255,255,255,0.6)' }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            onClick={handleConfirmDelete}
+                            disabled={deleteLoading}
+                            disableElevation
+                            sx={{
+                                bgcolor: '#ef4444',
+                                color: 'white',
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                borderRadius: 2,
+                                '&:hover': { bgcolor: '#dc2626' }
+                            }}
+                        >
+                            {deleteLoading ? 'Deleting...' : 'Delete'}
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
                 {/* Join Request Dialog (Non-owner only) */}
                 <Dialog
                     open={showJoinDialog}
@@ -1039,10 +1105,12 @@ export default function ProjectDetailsPage() {
                     fullWidth
                     PaperProps={{
                         sx: {
-                            borderRadius: 3,
-                            bgcolor: '#0a0a0a',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            color: 'white'
+                            borderRadius: 4,
+                            bgcolor: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                            backdropFilter: 'blur(16px)',
+                            color: 'white',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
                         }
                     }}
                 >

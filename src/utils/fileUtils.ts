@@ -169,7 +169,7 @@ export function getLanguageFromFileName(fileName: string): string {
  */
 const PISTON_LANGUAGE_MAP: Record<string, string> = {
     python: "python",
-    javascript: "node",
+    javascript: "javascript",
     typescript: "typescript",
     java: "java",
     cpp: "c++",
