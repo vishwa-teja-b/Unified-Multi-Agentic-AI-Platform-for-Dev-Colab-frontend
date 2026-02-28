@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Button, Container, Typography, Stack, IconButton, CircularProgress } from '@mui/material';
-import { Groups, AutoFixHigh, Bolt, ArrowForward, Brightness4, Brightness7 } from '@mui/icons-material';
+import { Groups, AutoFixHigh, Bolt, ArrowForward } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -18,7 +18,7 @@ import { ScrollIndicator } from '@/components/landing/ScrollIndicator';
 // --- Minimal Landing Page ---
 
 function NavBar() {
-  const { mode, toggleColorMode } = useThemeContext();
+  const { mode } = useThemeContext();
   const theme = useTheme();
 
   return (
@@ -41,9 +41,7 @@ function NavBar() {
         </Typography>
 
         <Stack direction="row" spacing={1} alignItems="center">
-          <IconButton onClick={toggleColorMode} size="small" sx={{ color: 'text.secondary' }}>
-            {mode === 'dark' ? <Brightness7 fontSize="small" /> : <Brightness4 fontSize="small" />}
-          </IconButton>
+
           <Button
             component={Link}
             href="/login"

@@ -14,29 +14,22 @@ import {
     CircularProgress,
     Alert,
     Snackbar,
-    IconButton,
-    Divider,
-    Paper,
 } from '@mui/material';
 import {
-    ArrowBack,
     Mail,
     PersonAdd,
     Check,
     Close,
     AccessTime,
-    Folder,
-    Inbox,
-    History,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { projectApi, InvitationResponse } from '@/utils/projectApi';
 import { TopBar } from '@/components/shared/TopBar';
 import { DistortedBackground } from '@/components/shared/DistortedBackground';
+import { useThemeColors } from '@/context/ThemeContext';
 
 const MotionBox = motion(Box);
-const GOLD = '#D4AF37';
 
 function timeAgo(dateStr: string): string {
     const now = new Date();
@@ -69,6 +62,8 @@ function getStatusChip(status: string) {
 
 export default function InvitationsPage() {
     const router = useRouter();
+    const c = useThemeColors();
+    const GOLD = c.gold;
     const [tab, setTab] = useState(0);
     const [invitations, setInvitations] = useState<InvitationResponse[]>([]);
     const [joinRequests, setJoinRequests] = useState<InvitationResponse[]>([]);
@@ -137,8 +132,8 @@ export default function InvitationsPage() {
     return (
         <Box sx={{
             minHeight: '100vh',
-            bgcolor: '#050505',
-            color: 'white',
+            bgcolor: 'transparent',
+            color: c.textPrimary,
             overflowX: 'hidden',
             position: 'relative',
         }}>
@@ -146,13 +141,13 @@ export default function InvitationsPage() {
             <TopBar />
 
             <Box sx={{ pt: '120px', pb: 8, position: 'relative', zIndex: 10 }}>
-                <Container maxWidth="lg">
+                <Box sx={{ width: { xs: '98%', sm: '90%', md: '85%', lg: '75%' }, maxWidth: '1300px', mx: 'auto' }}>
                     {/* Header */}
                     <Box sx={{ mb: 5 }}>
-                        <Typography variant="h3" fontWeight="800" sx={{ letterSpacing: '-0.02em', mb: 0.5, fontFamily: 'Space Grotesk', color: 'white' }}>
+                        <Typography variant="h3" fontWeight="800" sx={{ letterSpacing: '-0.02em', mb: 0.5, fontFamily: 'Space Grotesk', color: c.textPrimary }}>
                             Invitations & Requests
                         </Typography>
-                        <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                        <Typography variant="body1" sx={{ color: c.textSecondary }}>
                             Manage your project invitations and review join requests.
                         </Typography>
                     </Box>
@@ -164,7 +159,7 @@ export default function InvitationsPage() {
                         sx={{
                             mb: 4,
                             '& .MuiTab-root': {
-                                color: 'rgba(255,255,255,0.5)',
+                                color: c.textMuted,
                                 textTransform: 'none',
                                 fontWeight: 600,
                                 fontSize: '1rem',
@@ -172,6 +167,7 @@ export default function InvitationsPage() {
                                 '&.Mui-selected': { color: GOLD },
                             },
                             '& .MuiTabs-indicator': { bgcolor: GOLD, height: 3, borderRadius: '3px 3px 0 0' },
+                            borderBottom: c.borderLight,
                         }}
                     >
                         <Tab
@@ -217,11 +213,11 @@ export default function InvitationsPage() {
                             {tab === 0 && (
                                 <AnimatePresence>
                                     {invitations.length === 0 ? (
-                                        <EmptyState icon={<Mail />} title="No invitations yet" subtitle="When someone invites you to their project, it'll show up here." />
+                                        <EmptyState c={c} icon={<Mail />} title="No invitations yet" subtitle="When someone invites you to their project, it'll show up here." />
                                     ) : (
                                         <Stack spacing={3}>
                                             {pendingInvitations.length > 0 && (
-                                                <SectionLabel label="Pending" count={pendingInvitations.length} color="#fbbf24" />
+                                                <SectionLabel label="Pending" count={pendingInvitations.length} color="#fbbf24" c={c} />
                                             )}
                                             {pendingInvitations.map((inv, i) => (
                                                 <InvitationCard
@@ -232,13 +228,15 @@ export default function InvitationsPage() {
                                                     actionLoading={actionLoading}
                                                     onAccept={() => handleInvitationResponse(inv.id, 'ACCEPTED')}
                                                     onReject={() => handleInvitationResponse(inv.id, 'REJECTED')}
+                                                    c={c}
+                                                    GOLD={GOLD}
                                                 />
                                             ))}
                                             {pastInvitations.length > 0 && (
                                                 <>
-                                                    <SectionLabel label="Past" count={pastInvitations.length} color="rgba(255,255,255,0.4)" />
+                                                    <SectionLabel label="Past" count={pastInvitations.length} color={c.textMuted} c={c} />
                                                     {pastInvitations.map((inv, i) => (
-                                                        <InvitationCard key={inv.id} item={inv} index={i} type="invitation" actionLoading={actionLoading} />
+                                                        <InvitationCard key={inv.id} item={inv} index={i} type="invitation" actionLoading={actionLoading} c={c} GOLD={GOLD} />
                                                     ))}
                                                 </>
                                             )}
@@ -251,11 +249,11 @@ export default function InvitationsPage() {
                             {tab === 1 && (
                                 <AnimatePresence>
                                     {joinRequests.length === 0 ? (
-                                        <EmptyState icon={<PersonAdd />} title="No join requests" subtitle="When someone requests to join your project, it'll appear here." />
+                                        <EmptyState c={c} icon={<PersonAdd />} title="No join requests" subtitle="When someone requests to join your project, it'll appear here." />
                                     ) : (
                                         <Stack spacing={3}>
                                             {pendingJoinRequests.length > 0 && (
-                                                <SectionLabel label="Pending Review" count={pendingJoinRequests.length} color="#60a5fa" />
+                                                <SectionLabel label="Pending Review" count={pendingJoinRequests.length} color="#60a5fa" c={c} />
                                             )}
                                             {pendingJoinRequests.map((req, i) => (
                                                 <InvitationCard
@@ -266,13 +264,15 @@ export default function InvitationsPage() {
                                                     actionLoading={actionLoading}
                                                     onAccept={() => handleJoinRequestResponse(req.id, 'ACCEPTED')}
                                                     onReject={() => handleJoinRequestResponse(req.id, 'REJECTED')}
+                                                    c={c}
+                                                    GOLD={GOLD}
                                                 />
                                             ))}
                                             {pastJoinRequests.length > 0 && (
                                                 <>
-                                                    <SectionLabel label="Past" count={pastJoinRequests.length} color="rgba(255,255,255,0.4)" />
+                                                    <SectionLabel label="Past" count={pastJoinRequests.length} color={c.textMuted} c={c} />
                                                     {pastJoinRequests.map((req, i) => (
-                                                        <InvitationCard key={req.id} item={req} index={i} type="join_request" actionLoading={actionLoading} />
+                                                        <InvitationCard key={req.id} item={req} index={i} type="join_request" actionLoading={actionLoading} c={c} GOLD={GOLD} />
                                                     ))}
                                                 </>
                                             )}
@@ -282,7 +282,7 @@ export default function InvitationsPage() {
                             )}
                         </>
                     )}
-                </Container>
+                </Box>
 
                 <Snackbar
                     open={snackbar.open}
@@ -302,7 +302,7 @@ export default function InvitationsPage() {
 
 // ---- Sub-components ----
 
-function EmptyState({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
+function EmptyState({ icon, title, subtitle, c }: { icon: React.ReactNode; title: string; subtitle: string; c: any }) {
     return (
         <MotionBox
             initial={{ opacity: 0, y: 20 }}
@@ -311,24 +311,24 @@ function EmptyState({ icon, title, subtitle }: { icon: React.ReactNode; title: s
                 textAlign: 'center',
                 py: 10,
                 borderRadius: 4,
-                bgcolor: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.05)',
+                bgcolor: c.cardBg,
+                border: c.cardBorder,
             }}
         >
-            <Box sx={{ color: 'rgba(255,255,255,0.1)', mb: 2, '& .MuiSvgIcon-root': { fontSize: 56 } }}>{icon}</Box>
-            <Typography variant="h6" sx={{ color: 'white', mb: 0.5, fontFamily: 'Space Grotesk' }}>{title}</Typography>
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)' }}>{subtitle}</Typography>
+            <Box sx={{ color: c.borderLight, mb: 2, '& .MuiSvgIcon-root': { fontSize: 56 } }}>{icon}</Box>
+            <Typography variant="h6" sx={{ color: c.textPrimary, mb: 0.5, fontFamily: 'Space Grotesk' }}>{title}</Typography>
+            <Typography variant="body2" sx={{ color: c.textSecondary }}>{subtitle}</Typography>
         </MotionBox>
     );
 }
 
-function SectionLabel({ label, count, color }: { label: string; count: number; color: string }) {
+function SectionLabel({ label, count, color, c }: { label: string; count: number; color: string; c: any }) {
     return (
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mt: 2, mb: 1 }}>
             <Typography variant="subtitle2" fontWeight="700" sx={{ color, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'Space Grotesk' }}>
                 {label}
             </Typography>
-            <Chip label={count} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 700, height: 20, fontSize: '0.65rem' }} />
+            <Chip label={count} size="small" sx={{ bgcolor: c.surfaceHover, color: c.textPrimary, fontWeight: 700, height: 20, fontSize: '0.65rem' }} />
         </Stack>
     );
 }
@@ -340,9 +340,11 @@ interface InvitationCardProps {
     actionLoading: string | null;
     onAccept?: () => void;
     onReject?: () => void;
+    c: any;
+    GOLD: string;
 }
 
-function InvitationCard({ item, index, type, actionLoading, onAccept, onReject }: InvitationCardProps) {
+function InvitationCard({ item, index, type, actionLoading, onAccept, onReject, c, GOLD }: InvitationCardProps) {
     const isPending = item.status === 'PENDING';
     const isLoading = actionLoading === item.id;
 
@@ -353,8 +355,8 @@ function InvitationCard({ item, index, type, actionLoading, onAccept, onReject }
             exit={{ opacity: 0, x: -50 }}
             transition={{ delay: index * 0.05 }}
             sx={{
-                bgcolor: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.05)',
+                bgcolor: c.cardBg,
+                border: c.cardBorder,
                 backdropFilter: 'blur(10px)',
                 borderRadius: '16px',
                 p: 3,
@@ -362,8 +364,8 @@ function InvitationCard({ item, index, type, actionLoading, onAccept, onReject }
                 transition: 'all 0.3s ease',
                 '&:hover': {
                     borderColor: GOLD,
-                    bgcolor: 'rgba(255,255,255,0.05)',
-                    boxShadow: `0 0 20px rgba(212, 175, 55, 0.1)`,
+                    bgcolor: c.surfaceHover,
+                    boxShadow: '0 0 20px rgba(212, 175, 55, 0.1)',
                 },
             }}
         >
@@ -376,38 +378,38 @@ function InvitationCard({ item, index, type, actionLoading, onAccept, onReject }
                 <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
                     <Avatar sx={{
                         width: 48, height: 48,
-                        bgcolor: 'rgba(255,255,255,0.05)',
+                        bgcolor: c.surfaceHover,
                         color: type === 'invitation' ? '#a855f7' : '#60a5fa',
                         fontSize: '1.1rem', fontWeight: 600,
-                        border: '1px solid rgba(255,255,255,0.1)'
+                        border: c.borderLight
                     }}>
                         {type === 'invitation' ? <Mail /> : <PersonAdd />}
                     </Avatar>
 
                     <Box sx={{ flex: 1 }}>
                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-                            <Typography variant="subtitle1" fontWeight="700" sx={{ color: 'white', fontFamily: 'Space Grotesk' }}>
+                            <Typography variant="subtitle1" fontWeight="700" sx={{ color: c.textPrimary, fontFamily: 'Space Grotesk' }}>
                                 {item.project_title || 'Untitled Project'}
                             </Typography>
                             {getStatusChip(item.status)}
                         </Stack>
 
-                        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)', mb: 0.5 }}>
+                        <Typography variant="body2" sx={{ color: c.textSecondary, mb: 0.5 }}>
                             {type === 'invitation'
-                                ? <>Role: <strong style={{ color: 'white' }}>{item.role}</strong></>
-                                : <>Requesting as <strong style={{ color: 'white' }}>{item.role}</strong> • User #{item.sender_id}</>
+                                ? <>Role: <strong style={{ color: c.textPrimary }}>{item.role}</strong></>
+                                : <>Requesting as <strong style={{ color: c.textPrimary }}>{item.role}</strong> • User #{item.sender_id}</>
                             }
                         </Typography>
 
                         {item.message && (
-                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.45)', fontStyle: 'italic', mt: 0.5 }}>
+                            <Typography variant="body2" sx={{ color: c.textMuted, fontStyle: 'italic', mt: 0.5 }}>
                                 &quot;{item.message}&quot;
                             </Typography>
                         )}
 
                         <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 1 }}>
-                            <AccessTime sx={{ fontSize: 14, color: 'rgba(255,255,255,0.3)' }} />
-                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.35)' }}>
+                            <AccessTime sx={{ fontSize: 14, color: c.textMuted }} />
+                            <Typography variant="caption" sx={{ color: c.textSecondary }}>
                                 {timeAgo(item.created_at)}
                             </Typography>
                         </Stack>
@@ -441,8 +443,8 @@ function InvitationCard({ item, index, type, actionLoading, onAccept, onReject }
                             disabled={isLoading}
                             onClick={onReject}
                             sx={{
-                                borderColor: 'rgba(255,255,255,0.2)',
-                                color: 'rgba(255,255,255,0.7)',
+                                borderColor: c.borderLight,
+                                color: c.textSecondary,
                                 textTransform: 'none',
                                 borderRadius: '8px',
                                 '&:hover': { borderColor: '#ef4444', color: '#ef4444' },

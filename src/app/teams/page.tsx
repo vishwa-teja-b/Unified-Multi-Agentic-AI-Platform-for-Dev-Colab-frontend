@@ -19,16 +19,15 @@ import {
     Person,
     Star,
     AccessTime,
-    Folder,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { projectApi, TeamResponse } from '@/utils/projectApi';
 import { TopBar } from '@/components/shared/TopBar';
 import { DistortedBackground } from '@/components/shared/DistortedBackground';
+import { useThemeColors } from '@/context/ThemeContext';
 
 const MotionBox = motion(Box);
-const GOLD = '#D4AF37';
 
 function timeAgo(dateStr: string): string {
     const now = new Date();
@@ -67,6 +66,8 @@ function formatRole(role: string): string {
 
 export default function TeamsPage() {
     const router = useRouter();
+    const c = useThemeColors();
+    const GOLD = c.gold;
     const [teams, setTeams] = useState<TeamResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -91,8 +92,8 @@ export default function TeamsPage() {
     return (
         <Box sx={{
             minHeight: '100vh',
-            bgcolor: '#050505',
-            color: 'white',
+            bgcolor: 'transparent',
+            color: c.textPrimary,
             overflowX: 'hidden',
             position: 'relative',
         }}>
@@ -100,18 +101,18 @@ export default function TeamsPage() {
             <TopBar />
 
             <Box sx={{ pt: '120px', pb: 8, position: 'relative', zIndex: 10 }}>
-                <Container maxWidth="lg">
+                <Box sx={{ width: { xs: '98%', sm: '90%', md: '85%', lg: '75%' }, maxWidth: '1300px', mx: 'auto' }}>
                     {/* Header */}
                     <Box sx={{ mb: 5 }}>
                         <Typography variant="h3" fontWeight="800" sx={{
                             letterSpacing: '-0.02em',
                             mb: 0.5,
                             fontFamily: 'Space Grotesk',
-                            color: 'white',
+                            color: c.textPrimary,
                         }}>
                             My Teams
                         </Typography>
-                        <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                        <Typography variant="body1" sx={{ color: c.textSecondary }}>
                             All teams you're a part of across your projects.
                         </Typography>
                     </Box>
@@ -125,21 +126,21 @@ export default function TeamsPage() {
                                 mb: 4,
                                 p: 2.5,
                                 borderRadius: '16px',
-                                bgcolor: 'rgba(255,255,255,0.02)',
-                                border: '1px solid rgba(255,255,255,0.05)',
+                                bgcolor: c.cardBg,
+                                border: c.cardBorder,
                                 backdropFilter: 'blur(10px)',
                             }}
                         >
                             <Stack direction="row" alignItems="center" spacing={1}>
                                 <Groups sx={{ color: GOLD, fontSize: 22 }} />
-                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
-                                    <strong style={{ color: 'white' }}>{teams.length}</strong> {teams.length === 1 ? 'Team' : 'Teams'}
+                                <Typography variant="body2" sx={{ color: c.textSecondary }}>
+                                    <strong style={{ color: c.textPrimary }}>{teams.length}</strong> {teams.length === 1 ? 'Team' : 'Teams'}
                                 </Typography>
                             </Stack>
                             <Stack direction="row" alignItems="center" spacing={1}>
                                 <Person sx={{ color: '#60a5fa', fontSize: 22 }} />
-                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
-                                    <strong style={{ color: 'white' }}>
+                                <Typography variant="body2" sx={{ color: c.textSecondary }}>
+                                    <strong style={{ color: c.textPrimary }}>
                                         {teams.reduce((acc, t) => acc + t.team_members.length, 0)}
                                     </strong> Total Members
                                 </Typography>
@@ -170,12 +171,12 @@ export default function TeamsPage() {
                         <AnimatePresence>
                             <Stack spacing={3}>
                                 {teams.map((team, i) => (
-                                    <TeamCard key={team.id} team={team} index={i} router={router} />
+                                    <TeamCard key={team.id} team={team} index={i} router={router} c={c} GOLD={GOLD} />
                                 ))}
                             </Stack>
                         </AnimatePresence>
                     )}
-                </Container>
+                </Box>
             </Box>
         </Box>
     );
@@ -185,6 +186,8 @@ export default function TeamsPage() {
 
 function EmptyState() {
     const router = useRouter();
+    const c = useThemeColors();
+    const GOLD = c.gold;
     return (
         <MotionBox
             initial={{ opacity: 0, y: 20 }}
@@ -193,17 +196,17 @@ function EmptyState() {
                 textAlign: 'center',
                 py: 10,
                 borderRadius: 4,
-                bgcolor: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.05)',
+                bgcolor: c.cardBg,
+                border: c.cardBorder,
             }}
         >
-            <Box sx={{ color: 'rgba(255,255,255,0.1)', mb: 2 }}>
+            <Box sx={{ color: c.borderLight, mb: 2 }}>
                 <Groups sx={{ fontSize: 56 }} />
             </Box>
-            <Typography variant="h6" sx={{ color: 'white', mb: 0.5, fontFamily: 'Space Grotesk' }}>
+            <Typography variant="h6" sx={{ color: c.textPrimary, mb: 0.5, fontFamily: 'Space Grotesk' }}>
                 No teams yet
             </Typography>
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)', mb: 3 }}>
+            <Typography variant="body2" sx={{ color: c.textMuted, mb: 3 }}>
                 Create a project or accept an invitation to join a team.
             </Typography>
             <Button
@@ -217,7 +220,7 @@ function EmptyState() {
                     borderRadius: '12px',
                     px: 3,
                     '&:hover': {
-                        bgcolor: 'rgba(212,175,55,0.1)',
+                        bgcolor: c.goldBg,
                         borderColor: GOLD,
                     },
                 }}
@@ -228,7 +231,7 @@ function EmptyState() {
     );
 }
 
-function TeamCard({ team, index, router }: { team: TeamResponse; index: number; router: any }) {
+function TeamCard({ team, index, router, c, GOLD }: { team: TeamResponse; index: number; router: any; c: any; GOLD: string }) {
     const currentUserId = typeof window !== 'undefined'
         ? parseInt(localStorage.getItem('user_id') || '0')
         : 0;
@@ -243,8 +246,8 @@ function TeamCard({ team, index, router }: { team: TeamResponse; index: number; 
             transition={{ delay: index * 0.06 }}
             onClick={() => router.push(`/projects/${team.project_id}`)}
             sx={{
-                bgcolor: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.05)',
+                bgcolor: c.cardBg,
+                border: c.cardBorder,
                 backdropFilter: 'blur(10px)',
                 borderRadius: '16px',
                 p: 3,
@@ -252,8 +255,8 @@ function TeamCard({ team, index, router }: { team: TeamResponse; index: number; 
                 transition: 'all 0.3s ease',
                 '&:hover': {
                     borderColor: GOLD,
-                    bgcolor: 'rgba(255,255,255,0.05)',
-                    boxShadow: `0 0 25px rgba(212, 175, 55, 0.1)`,
+                    bgcolor: c.surfaceHover,
+                    boxShadow: '0 0 25px rgba(212, 175, 55, 0.1)',
                     transform: 'translateY(-2px)',
                 },
             }}
@@ -269,11 +272,11 @@ function TeamCard({ team, index, router }: { team: TeamResponse; index: number; 
                     <Avatar sx={{
                         width: 52,
                         height: 52,
-                        bgcolor: 'rgba(212,175,55,0.1)',
+                        bgcolor: c.goldBg,
                         color: GOLD,
                         fontSize: '1.3rem',
                         fontWeight: 700,
-                        border: '1px solid rgba(212,175,55,0.2)',
+                        border: `1px solid ${c.goldBorder}`,
                     }}>
                         {team.project_title.charAt(0).toUpperCase()}
                     </Avatar>
@@ -281,7 +284,7 @@ function TeamCard({ team, index, router }: { team: TeamResponse; index: number; 
                     <Box sx={{ flex: 1 }}>
                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
                             <Typography variant="subtitle1" fontWeight="700" sx={{
-                                color: 'white',
+                                color: c.textPrimary,
                                 fontFamily: 'Space Grotesk',
                             }}>
                                 {team.project_title}
@@ -292,7 +295,7 @@ function TeamCard({ team, index, router }: { team: TeamResponse; index: number; 
                                     label="Owner"
                                     size="small"
                                     sx={{
-                                        bgcolor: 'rgba(212,175,55,0.12)',
+                                        bgcolor: c.goldBg,
                                         color: GOLD,
                                         fontWeight: 700,
                                         fontSize: '0.65rem',
@@ -304,7 +307,7 @@ function TeamCard({ team, index, router }: { team: TeamResponse; index: number; 
                         </Stack>
 
                         {/* Role */}
-                        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)', mb: 1 }}>
+                        <Typography variant="body2" sx={{ color: c.textMuted, mb: 1 }}>
                             Your role: <span style={{ color: getRoleColor(myRole), fontWeight: 600 }}>
                                 {formatRole(myRole)}
                             </span>
@@ -319,9 +322,9 @@ function TeamCard({ team, index, router }: { team: TeamResponse; index: number; 
                                         width: 28, height: 28,
                                         fontSize: '0.7rem',
                                         fontWeight: 600,
-                                        bgcolor: 'rgba(255,255,255,0.1)',
-                                        border: '2px solid rgba(20,20,20,0.8)',
-                                        color: 'rgba(255,255,255,0.7)',
+                                        bgcolor: c.surface,
+                                        border: `2px solid ${c.bg}`,
+                                        color: c.textSecondary,
                                     },
                                 }}
                             >
@@ -340,7 +343,7 @@ function TeamCard({ team, index, router }: { team: TeamResponse; index: number; 
                                 ))}
                             </AvatarGroup>
 
-                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)' }}>
+                            <Typography variant="caption" sx={{ color: c.textMuted }}>
                                 {team.team_members.length} {team.team_members.length === 1 ? 'member' : 'members'}
                             </Typography>
                         </Stack>
@@ -350,8 +353,8 @@ function TeamCard({ team, index, router }: { team: TeamResponse; index: number; 
                 {/* Right: Meta + Arrow */}
                 <Stack alignItems={{ xs: 'flex-start', sm: 'flex-end' }} spacing={1}>
                     <Stack direction="row" alignItems="center" spacing={0.5}>
-                        <AccessTime sx={{ fontSize: 14, color: 'rgba(255,255,255,0.3)' }} />
-                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.35)' }}>
+                        <AccessTime sx={{ fontSize: 14, color: c.textMuted }} />
+                        <Typography variant="caption" sx={{ color: c.textSecondary }}>
                             Formed {timeAgo(team.created_at)}
                         </Typography>
                     </Stack>
@@ -370,7 +373,7 @@ function TeamCard({ team, index, router }: { team: TeamResponse; index: number; 
             </Stack>
 
             {/* Member Tags Row */}
-            <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2, pt: 2, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+            <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2, pt: 2, borderTop: c.borderLight }}>
                 {team.team_members.map((member) => (
                     <Chip
                         key={member.user_id}

@@ -52,16 +52,19 @@ import RoadmapView from '@/components/projects/RoadmapView';
 import { TopBar } from '@/components/shared/TopBar';
 import { DistortedBackground } from '@/components/shared/DistortedBackground';
 import AILoadingAnimation from '@/components/shared/AILoadingAnimation';
+import { useThemeColors } from '@/context/ThemeContext';
 
 const CATEGORIES = ["Full Stack", "Frontend", "Backend", "Mobile", "Data Science", "AI/ML", "DevOps", "Other"];
 const COMPLEXITIES = ["Easy", "Medium", "Hard"];
-const GOLD = '#D4AF37';
 
 const MotionPaper = motion(Paper);
 
 export default function ProjectDetailsPage() {
     const { id } = useParams();
     const router = useRouter();
+    const c = useThemeColors();
+    const GOLD = c.gold;
+
     const [project, setProject] = useState<ProjectResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
@@ -160,9 +163,9 @@ export default function ProjectDetailsPage() {
         }
     }, [teamData, authUserId]);
 
-    // Fetch roadmap if tab is active
+    // Fetch roadmap on mount
     useEffect(() => {
-        if (tabValue === 1 && id && !fetchedRoadmap) {
+        if (id && !fetchedRoadmap) {
             projectApi.getProjectPlan(id as string)
                 .then(data => {
                     setRoadmapData({
@@ -177,7 +180,7 @@ export default function ProjectDetailsPage() {
                     setFetchedRoadmap(true); // Tried fetching, none found
                 });
         }
-    }, [tabValue, id, fetchedRoadmap]);
+    }, [id, fetchedRoadmap]);
 
     const handleUpdate = async (data: ProjectCreateData) => {
         try {
@@ -313,13 +316,13 @@ export default function ProjectDetailsPage() {
             case 'Open': return { bg: 'rgba(52, 211, 153, 0.15)', text: '#34d399' };
             case 'In Progress': return { bg: 'rgba(251, 191, 36, 0.15)', text: '#fbbf24' };
             case 'Completed': return { bg: 'rgba(168, 85, 247, 0.15)', text: '#a855f7' };
-            default: return { bg: 'rgba(255, 255, 255, 0.1)', text: '#9ca3af' };
+            default: return { bg: c.borderLight, text: c.textSecondary };
         }
     };
 
     if (loading) {
         return (
-            <Box sx={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: '#050505' }}>
+            <Box sx={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: 'transparent' }}>
                 <CircularProgress sx={{ color: GOLD }} />
             </Box>
         );
@@ -327,27 +330,27 @@ export default function ProjectDetailsPage() {
 
     if (!project) {
         return (
-            <Box sx={{ minHeight: '100vh', bgcolor: '#050505', py: 4, pt: '120px' }}>
+            <Box sx={{ minHeight: '100vh', bgcolor: 'transparent', py: 4, pt: '120px' }}>
                 <DistortedBackground />
                 <TopBar />
-                <Container maxWidth="lg">
+                <Box sx={{ width: { xs: '98%', sm: '90%', md: '85%', lg: '75%' }, maxWidth: '1300px', mx: 'auto' }}>
                     <Paper elevation={0} sx={{
                         p: 8,
                         borderRadius: 4,
                         textAlign: 'center',
-                        bgcolor: 'rgba(255,255,255,0.02)',
-                        border: '1px solid rgba(255,255,255,0.05)',
+                        bgcolor: c.cardBg,
+                        border: c.cardBorder,
                         backdropFilter: 'blur(10px)'
                     }}>
-                        <Typography variant="h5" fontWeight="600" sx={{ mb: 1, color: 'white' }}>Project not found</Typography>
-                        <Typography variant="body2" sx={{ mb: 3, color: 'rgba(255,255,255,0.6)' }}>
+                        <Typography variant="h5" fontWeight="600" sx={{ mb: 1, color: c.textPrimary }}>Project not found</Typography>
+                        <Typography variant="body2" sx={{ mb: 3, color: c.textSecondary }}>
                             This project may have been deleted or doesn't exist.
                         </Typography>
                         <Button component={Link} href="/projects" startIcon={<ArrowBack />} sx={{ color: GOLD }}>
                             Back to Projects
                         </Button>
                     </Paper>
-                </Container>
+                </Box>
             </Box>
         );
     }
@@ -357,8 +360,8 @@ export default function ProjectDetailsPage() {
     return (
         <Box sx={{
             minHeight: '100vh',
-            bgcolor: '#050505', // Dark background
-            color: 'white',
+            bgcolor: 'transparent',
+            color: c.textPrimary,
             overflowX: 'hidden',
             position: 'relative',
         }}>
@@ -366,14 +369,14 @@ export default function ProjectDetailsPage() {
             <TopBar />
 
             <Box sx={{ pt: '120px', pb: 8, position: 'relative', zIndex: 10 }}>
-                <Container maxWidth="lg">
+                <Box sx={{ width: { xs: '98%', sm: '90%', md: '85%', lg: '75%' }, maxWidth: '1300px', mx: 'auto' }}>
                     {/* Navigation */}
                     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
                         <Button
                             component={Link}
                             href="/projects"
                             startIcon={<ArrowBack />}
-                            sx={{ color: 'rgba(255,255,255,0.6)', textTransform: 'none', '&:hover': { color: 'white' } }}
+                            sx={{ color: c.textSecondary, textTransform: 'none', '&:hover': { color: c.textPrimary } }}
                         >
                             Back to Projects
                         </Button>
@@ -396,15 +399,15 @@ export default function ProjectDetailsPage() {
                                             disabled={!!(teamData && project && teamData.team_members.length >= project.team_size.max)}
                                             disableElevation
                                             sx={{
-                                                bgcolor: 'rgba(255,255,255,0.1)',
-                                                color: 'white',
+                                                bgcolor: c.borderLight,
+                                                color: c.textPrimary,
                                                 borderRadius: 2,
                                                 textTransform: 'none',
                                                 fontWeight: 600,
-                                                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+                                                '&:hover': { bgcolor: c.border },
                                                 '&.Mui-disabled': {
-                                                    color: 'rgba(255,255,255,0.3)',
-                                                    bgcolor: 'rgba(255,255,255,0.05)',
+                                                    color: c.textMuted,
+                                                    bgcolor: c.surface,
                                                 },
                                             }}
                                         >
@@ -446,8 +449,8 @@ export default function ProjectDetailsPage() {
                                             fontWeight: 600,
                                             '&:hover': { bgcolor: '#F0C040' },
                                             '&.Mui-disabled': {
-                                                bgcolor: 'rgba(255,255,255,0.08)',
-                                                color: 'rgba(255,255,255,0.35)',
+                                                bgcolor: c.borderLight,
+                                                color: c.textMuted,
                                             },
                                         }}
                                     >
@@ -467,10 +470,10 @@ export default function ProjectDetailsPage() {
                             onChange={(_, v) => setTabValue(v)}
                             sx={{
                                 borderBottom: 1,
-                                borderColor: 'rgba(255,255,255,0.1)',
+                                borderColor: c.divider,
                                 width: { xs: '100%', sm: 'auto' },
                                 '& .MuiTab-root': {
-                                    color: 'rgba(255,255,255,0.5)',
+                                    color: c.textSecondary,
                                     textTransform: 'none',
                                     fontWeight: 600,
                                     fontSize: '1rem',
@@ -481,7 +484,7 @@ export default function ProjectDetailsPage() {
                             }}
                         >
                             <Tab label="Overview" />
-                            <Tab label="Roadmap" disabled={!roadmapData && !isOwner} />
+                            <Tab label="Roadmap" disabled={!roadmapData && !isOwner && !isTeamMember} />
                         </Tabs>
                         {isOwner && (
                             <Button
@@ -491,12 +494,12 @@ export default function ProjectDetailsPage() {
                                 disabled={generatingRoadmap}
                                 sx={{
                                     background: generatingRoadmap
-                                        ? 'rgba(212, 175, 55, 0.2)'
+                                        ? c.goldBg
                                         : `linear-gradient(45deg, ${GOLD} 30%, #F0C040 90%)`,
                                     color: generatingRoadmap ? GOLD : 'black',
                                     boxShadow: generatingRoadmap
-                                        ? `0 0 15px rgba(212, 175, 55, 0.2)`
-                                        : `0 3px 5px 2px rgba(212, 175, 55, .3)`,
+                                        ? `0 0 15px ${c.goldBg}`
+                                        : `0 3px 5px 2px ${c.goldBg}`,
                                     textTransform: 'none',
                                     fontWeight: 700,
                                     borderRadius: 5,
@@ -552,12 +555,12 @@ export default function ProjectDetailsPage() {
                             elevation={0}
                             sx={{
                                 borderRadius: 4,
-                                bgcolor: 'rgba(255,255,255,0.02)',
-                                border: '1px solid rgba(16, 185, 129, 0.2)',
+                                bgcolor: c.cardBg,
+                                border: `1px solid rgba(16, 185, 129, 0.2)`,
                                 backdropFilter: 'blur(10px)',
                                 mb: 3,
                                 overflow: 'hidden',
-                                boxShadow: '0 0 40px rgba(16, 185, 129, 0.1)',
+                                boxShadow: `0 0 40px rgba(16, 185, 129, 0.1)`,
                             }}
                         >
                             <AILoadingAnimation mode="session" />
@@ -572,8 +575,8 @@ export default function ProjectDetailsPage() {
                             elevation={0}
                             sx={{
                                 borderRadius: 4,
-                                bgcolor: 'rgba(255,255,255,0.02)',
-                                border: '1px solid rgba(255,255,255,0.05)',
+                                bgcolor: c.cardBg,
+                                border: c.cardBorder,
                                 backdropFilter: 'blur(10px)',
                                 mb: 3,
                                 overflow: 'hidden',
@@ -588,6 +591,48 @@ export default function ProjectDetailsPage() {
                             onTaskMove={isOwner ? handleTaskMove : undefined}
                             currentSprintNumber={currentSprintNumber}
                         />
+                    ) : tabValue === 1 ? (
+                        <MotionPaper
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4 }}
+                            elevation={0}
+                            sx={{
+                                p: 8,
+                                borderRadius: 4,
+                                textAlign: 'center',
+                                bgcolor: c.cardBg,
+                                border: c.cardBorder,
+                                backdropFilter: 'blur(10px)',
+                            }}
+                        >
+                            <AutoAwesome sx={{ fontSize: 60, color: GOLD, mb: 2, opacity: 0.8 }} />
+                            <Typography variant="h5" fontWeight="600" sx={{ mb: 2, color: c.textPrimary, fontFamily: 'Space Grotesk' }}>
+                                Project Roadmap
+                            </Typography>
+                            <Typography variant="body1" sx={{ color: c.textSecondary, mb: 4, maxWidth: 600, mx: 'auto' }}>
+                                A detailed roadmap has not been generated for this project yet. Use the AI Project Planner to automatically create sprints, tasks, and milestones based on the project's features and requirements.
+                            </Typography>
+                            {isOwner && (
+                                <Button
+                                    variant="contained"
+                                    startIcon={<AutoAwesome />}
+                                    onClick={handleGenerateRoadmap}
+                                    sx={{
+                                        background: `linear-gradient(45deg, ${GOLD} 30%, #F0C040 90%)`,
+                                        color: 'black',
+                                        boxShadow: `0 3px 5px 2px ${c.goldBg}`,
+                                        textTransform: 'none',
+                                        fontWeight: 700,
+                                        borderRadius: 5,
+                                        px: 4,
+                                        py: 1.5,
+                                    }}
+                                >
+                                    Generate Roadmap Now
+                                </Button>
+                            )}
+                        </MotionPaper>
                     ) : (
                         <form onSubmit={handleSubmit(handleUpdate)}>
                             {/* Hero Section */}
@@ -599,8 +644,8 @@ export default function ProjectDetailsPage() {
                                 sx={{
                                     p: { xs: 4, md: 6 },
                                     borderRadius: 4,
-                                    bgcolor: 'rgba(255,255,255,0.02)',
-                                    border: '1px solid rgba(255,255,255,0.05)',
+                                    bgcolor: c.cardBg,
+                                    border: c.cardBorder,
                                     backdropFilter: 'blur(10px)',
                                     mb: 3,
                                 }}
@@ -617,9 +662,9 @@ export default function ProjectDetailsPage() {
                                                     label="Project Title"
                                                     fullWidth
                                                     sx={{
-                                                        '& .MuiOutlinedInput-root': { borderRadius: 2, color: 'white', '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } },
-                                                        '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.5)' },
-                                                        '& .MuiInputBase-input': { color: 'white' }
+                                                        '& .MuiOutlinedInput-root': { borderRadius: 2, color: c.textPrimary, '& fieldset': { borderColor: c.borderLight } },
+                                                        '& .MuiInputLabel-root': { color: c.textSecondary },
+                                                        '& .MuiInputBase-input': { color: c.textPrimary }
                                                     }}
                                                 />
                                             )}
@@ -632,9 +677,9 @@ export default function ProjectDetailsPage() {
                                                 sx={{
                                                     textTransform: 'none',
                                                     borderRadius: 2,
-                                                    borderColor: 'rgba(255,255,255,0.2)',
-                                                    color: 'white',
-                                                    '&:hover': { borderColor: 'white' }
+                                                    borderColor: c.borderLight,
+                                                    color: c.textPrimary,
+                                                    '&:hover': { borderColor: c.textPrimary }
                                                 }}
                                             >
                                                 Cancel
@@ -661,7 +706,7 @@ export default function ProjectDetailsPage() {
                                 ) : (
                                     <>
                                         <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-                                            <Chip label={project.category} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 600 }} />
+                                            <Chip label={project.category} size="small" sx={{ bgcolor: c.borderLight, color: c.textPrimary, fontWeight: 600 }} />
                                             <Chip
                                                 label={project.status}
                                                 size="small"
@@ -672,10 +717,10 @@ export default function ProjectDetailsPage() {
                                                 }}
                                             />
                                         </Stack>
-                                        <Typography variant="h3" fontWeight="800" sx={{ letterSpacing: '-0.02em', mb: 1, fontFamily: 'Space Grotesk', color: 'white' }}>
+                                        <Typography variant="h3" fontWeight="800" sx={{ letterSpacing: '-0.02em', mb: 1, fontFamily: 'Space Grotesk', color: c.textPrimary }}>
                                             {project.title}
                                         </Typography>
-                                        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                                        <Typography variant="body2" sx={{ color: c.textSecondary }}>
                                             Created on {new Date(project.created_at).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'long',
@@ -700,11 +745,11 @@ export default function ProjectDetailsPage() {
                                             sx={{
                                                 p: 4,
                                                 borderRadius: 4,
-                                                bgcolor: 'rgba(255,255,255,0.02)',
-                                                border: '1px solid rgba(255,255,255,0.05)',
+                                                bgcolor: c.cardBg,
+                                                border: c.cardBorder,
                                             }}
                                         >
-                                            <Typography variant="h6" fontWeight="700" sx={{ mb: 2, color: 'white', fontFamily: 'Space Grotesk' }}>
+                                            <Typography variant="h6" fontWeight="700" sx={{ mb: 2, color: c.textPrimary, fontFamily: 'Space Grotesk' }}>
                                                 Overview
                                             </Typography>
                                             {isEditing ? (
@@ -719,14 +764,14 @@ export default function ProjectDetailsPage() {
                                                             fullWidth
                                                             placeholder="Describe your project..."
                                                             sx={{
-                                                                '& .MuiOutlinedInput-root': { borderRadius: 2, color: 'white', '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } },
-                                                                '& .MuiInputBase-input': { color: 'white' }
+                                                                '& .MuiOutlinedInput-root': { borderRadius: 2, color: c.textPrimary, '& fieldset': { borderColor: c.borderLight } },
+                                                                '& .MuiInputBase-input': { color: c.textPrimary }
                                                             }}
                                                         />
                                                     )}
                                                 />
                                             ) : (
-                                                <Typography variant="body1" sx={{ lineHeight: 1.8, color: 'rgba(255,255,255,0.7)' }}>
+                                                <Typography variant="body1" sx={{ lineHeight: 1.8, color: c.textSecondary }}>
                                                     {project.description}
                                                 </Typography>
                                             )}
@@ -741,11 +786,11 @@ export default function ProjectDetailsPage() {
                                             sx={{
                                                 p: 4,
                                                 borderRadius: 4,
-                                                bgcolor: 'rgba(255,255,255,0.02)',
-                                                border: '1px solid rgba(255,255,255,0.05)',
+                                                bgcolor: c.cardBg,
+                                                border: c.cardBorder,
                                             }}
                                         >
-                                            <Typography variant="h6" fontWeight="700" sx={{ mb: 2, color: 'white', fontFamily: 'Space Grotesk' }}>
+                                            <Typography variant="h6" fontWeight="700" sx={{ mb: 2, color: c.textPrimary, fontFamily: 'Space Grotesk' }}>
                                                 Key Features
                                             </Typography>
                                             {isEditing ? (
@@ -756,11 +801,11 @@ export default function ProjectDetailsPage() {
                                                         value={featureInput}
                                                         onChange={(e) => setFeatureInput(e.target.value)}
                                                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddFeature())}
-                                                        sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: 2, color: 'white', '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                                                        sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: 2, color: c.textPrimary, '& fieldset': { borderColor: c.borderLight } } }}
                                                         InputProps={{
                                                             endAdornment: (
                                                                 <InputAdornment position="end">
-                                                                    <IconButton onClick={handleAddFeature} size="small" sx={{ color: 'white' }}>
+                                                                    <IconButton onClick={handleAddFeature} size="small" sx={{ color: c.textPrimary }}>
                                                                         <AddIcon />
                                                                     </IconButton>
                                                                 </InputAdornment>
@@ -774,7 +819,7 @@ export default function ProjectDetailsPage() {
                                                                 label={feature}
                                                                 onDelete={() => removeFeature(i)}
                                                                 variant="outlined"
-                                                                sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.2)' }}
+                                                                sx={{ color: c.textPrimary, borderColor: c.borderLight }}
                                                             />
                                                         ))}
                                                     </Box>
@@ -785,11 +830,11 @@ export default function ProjectDetailsPage() {
                                                         project.features.map((feature, i) => (
                                                             <Stack key={i} direction="row" alignItems="flex-start" spacing={1.5}>
                                                                 <CheckCircle sx={{ fontSize: 20, color: GOLD, mt: 0.3 }} />
-                                                                <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.8)' }}>{feature}</Typography>
+                                                                <Typography variant="body1" sx={{ color: c.textSecondary }}>{feature}</Typography>
                                                             </Stack>
                                                         ))
                                                     ) : (
-                                                        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>
+                                                        <Typography variant="body2" sx={{ color: c.textMuted, fontStyle: 'italic' }}>
                                                             No specific features listed.
                                                         </Typography>
                                                     )}
@@ -809,17 +854,17 @@ export default function ProjectDetailsPage() {
                                         sx={{
                                             p: 4,
                                             borderRadius: 4,
-                                            bgcolor: 'rgba(255,255,255,0.02)',
-                                            border: '1px solid rgba(255,255,255,0.05)',
+                                            bgcolor: c.cardBg,
+                                            border: c.cardBorder,
                                         }}
                                     >
-                                        <Typography variant="h6" fontWeight="700" sx={{ mb: 3, color: 'white', fontFamily: 'Space Grotesk' }}>
+                                        <Typography variant="h6" fontWeight="700" sx={{ mb: 3, color: c.textPrimary, fontFamily: 'Space Grotesk' }}>
                                             Details
                                         </Typography>
                                         <Stack spacing={3}>
                                             {/* Category */}
                                             <Box>
-                                                <Typography variant="subtitle2" sx={{ mb: 1, color: 'rgba(255,255,255,0.5)' }}>
+                                                <Typography variant="subtitle2" sx={{ mb: 1, color: c.textSecondary }}>
                                                     Category
                                                 </Typography>
                                                 {isEditing ? (
@@ -832,22 +877,22 @@ export default function ProjectDetailsPage() {
                                                                 select
                                                                 fullWidth
                                                                 size="small"
-                                                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, color: 'white', '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                                                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, color: c.textPrimary, '& fieldset': { borderColor: c.borderLight } } }}
                                                             >
                                                                 {CATEGORIES.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
                                                             </TextField>
                                                         )}
                                                     />
                                                 ) : (
-                                                    <Chip label={project.category} sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'white' }} />
+                                                    <Chip label={project.category} sx={{ bgcolor: c.borderLight, color: c.textPrimary }} />
                                                 )}
                                             </Box>
 
-                                            <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+                                            <Divider sx={{ borderColor: c.divider }} />
 
                                             {/* Complexity */}
                                             <Box>
-                                                <Typography variant="subtitle2" sx={{ mb: 1, color: 'rgba(255,255,255,0.5)' }}>
+                                                <Typography variant="subtitle2" sx={{ mb: 1, color: c.textSecondary }}>
                                                     Complexity
                                                 </Typography>
                                                 {isEditing ? (
@@ -860,22 +905,22 @@ export default function ProjectDetailsPage() {
                                                                 select
                                                                 fullWidth
                                                                 size="small"
-                                                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, color: 'white', '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                                                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, color: c.textPrimary, '& fieldset': { borderColor: c.borderLight } } }}
                                                             >
                                                                 {COMPLEXITIES.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
                                                             </TextField>
                                                         )}
                                                     />
                                                 ) : (
-                                                    <Typography variant="body1" fontWeight="500" sx={{ color: 'white' }}>{project.complexity}</Typography>
+                                                    <Typography variant="body1" fontWeight="500" sx={{ color: c.textPrimary }}>{project.complexity}</Typography>
                                                 )}
                                             </Box>
 
-                                            <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+                                            <Divider sx={{ borderColor: c.divider }} />
 
                                             {/* Duration */}
                                             <Box>
-                                                <Typography variant="subtitle2" sx={{ mb: 1, color: 'rgba(255,255,255,0.5)' }}>
+                                                <Typography variant="subtitle2" sx={{ mb: 1, color: c.textSecondary }}>
                                                     Duration
                                                 </Typography>
                                                 {isEditing ? (
@@ -887,23 +932,23 @@ export default function ProjectDetailsPage() {
                                                                 {...field}
                                                                 fullWidth
                                                                 size="small"
-                                                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, color: 'white', '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                                                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, color: c.textPrimary, '& fieldset': { borderColor: c.borderLight } } }}
                                                             />
                                                         )}
                                                     />
                                                 ) : (
                                                     <Stack direction="row" alignItems="center" spacing={1}>
-                                                        <AccessTime fontSize="small" sx={{ color: 'rgba(255,255,255,0.4)' }} />
-                                                        <Typography variant="body1" fontWeight="500" sx={{ color: 'white' }}>{project.estimated_duration}</Typography>
+                                                        <AccessTime fontSize="small" sx={{ color: c.textMuted }} />
+                                                        <Typography variant="body1" fontWeight="500" sx={{ color: c.textPrimary }}>{project.estimated_duration}</Typography>
                                                     </Stack>
                                                 )}
                                             </Box>
 
-                                            <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+                                            <Divider sx={{ borderColor: c.divider }} />
 
                                             {/* Team Size */}
                                             <Box>
-                                                <Typography variant="subtitle2" sx={{ mb: 1, color: 'rgba(255,255,255,0.5)' }}>
+                                                <Typography variant="subtitle2" sx={{ mb: 1, color: c.textSecondary }}>
                                                     Team Size
                                                 </Typography>
                                                 {isEditing ? (
@@ -927,19 +972,19 @@ export default function ProjectDetailsPage() {
                                                     />
                                                 ) : (
                                                     <Stack direction="row" alignItems="center" spacing={1}>
-                                                        <Group fontSize="small" sx={{ color: 'rgba(255,255,255,0.4)' }} />
-                                                        <Typography variant="body1" fontWeight="500" sx={{ color: 'white' }}>
+                                                        <Group fontSize="small" sx={{ color: c.textMuted }} />
+                                                        <Typography variant="body1" fontWeight="500" sx={{ color: c.textPrimary }}>
                                                             {project.team_size.min} - {project.team_size.max} members
                                                         </Typography>
                                                     </Stack>
                                                 )}
                                             </Box>
 
-                                            <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+                                            <Divider sx={{ borderColor: c.divider }} />
 
                                             {/* Skills */}
                                             <Box>
-                                                <Typography variant="subtitle2" sx={{ mb: 1.5, color: 'rgba(255,255,255,0.5)' }}>
+                                                <Typography variant="subtitle2" sx={{ mb: 1.5, color: c.textSecondary }}>
                                                     Required Skills
                                                 </Typography>
                                                 {isEditing ? (
@@ -956,14 +1001,14 @@ export default function ProjectDetailsPage() {
                                                                 rows={2}
                                                                 placeholder="React, Python, etc."
                                                                 size="small"
-                                                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, color: 'white', '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                                                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, color: c.textPrimary, '& fieldset': { borderColor: c.borderLight } } }}
                                                             />
                                                         )}
                                                     />
                                                 ) : (
                                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                                                         {project.required_skills.map((skill, i) => (
-                                                            <Chip key={i} label={skill} size="small" variant="outlined" sx={{ color: 'rgba(255,255,255,0.7)', borderColor: 'rgba(255,255,255,0.1)' }} />
+                                                            <Chip key={i} label={skill} size="small" variant="outlined" sx={{ color: c.textSecondary, borderColor: c.borderLight }} />
                                                         ))}
                                                     </Box>
                                                 )}
@@ -980,14 +1025,14 @@ export default function ProjectDetailsPage() {
                                         sx={{
                                             p: 4,
                                             borderRadius: 4,
-                                            bgcolor: 'rgba(255,255,255,0.02)',
-                                            border: '1px solid rgba(255,255,255,0.05)',
+                                            bgcolor: c.cardBg,
+                                            border: c.cardBorder,
                                             mt: 3,
                                         }}
                                     >
                                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                                            <Groups fontSize="small" sx={{ color: 'rgba(255,255,255,0.4)' }} />
-                                            <Typography variant="h6" fontWeight="700" sx={{ color: 'white', fontFamily: 'Space Grotesk' }}>
+                                            <Groups fontSize="small" sx={{ color: c.textMuted }} />
+                                            <Typography variant="h6" fontWeight="700" sx={{ color: c.textPrimary, fontFamily: 'Space Grotesk' }}>
                                                 Team Members
                                             </Typography>
                                         </Stack>
@@ -1000,28 +1045,28 @@ export default function ProjectDetailsPage() {
                                                         sx={{
                                                             p: 1.5,
                                                             borderRadius: 2,
-                                                            bgcolor: 'rgba(255,255,255,0.03)',
+                                                            bgcolor: c.surface,
                                                         }}
                                                     >
-                                                        <Avatar sx={{ width: 36, height: 36, bgcolor: i === 0 ? GOLD : 'rgba(255,255,255,0.1)', color: i === 0 ? 'black' : 'white', fontSize: '0.85rem' }}>
+                                                        <Avatar sx={{ width: 36, height: 36, bgcolor: i === 0 ? GOLD : c.borderLight, color: i === 0 ? 'black' : c.textPrimary, fontSize: '0.85rem' }}>
                                                             {(member.username || 'U')[0].toUpperCase()}
                                                         </Avatar>
                                                         <Box sx={{ flex: 1 }}>
-                                                            <Typography variant="body2" fontWeight="600" sx={{ color: 'white' }}>
+                                                            <Typography variant="body2" fontWeight="600" sx={{ color: c.textPrimary }}>
                                                                 {member.username || `User #${member.user_id}`}
                                                             </Typography>
-                                                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                                                            <Typography variant="caption" sx={{ color: c.textSecondary }}>
                                                                 {member.role}
                                                             </Typography>
                                                         </Box>
                                                         {i === 0 && (
-                                                            <Chip label="Owner" size="small" sx={{ bgcolor: 'rgba(212, 175, 55, 0.15)', color: GOLD, fontWeight: 600, fontSize: '0.65rem' }} />
+                                                            <Chip label="Owner" size="small" sx={{ bgcolor: c.goldBg, color: GOLD, fontWeight: 600, fontSize: '0.65rem' }} />
                                                         )}
                                                     </Stack>
                                                 ))}
                                             </Stack>
                                         ) : (
-                                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>
+                                            <Typography variant="body2" sx={{ color: c.textMuted, fontStyle: 'italic' }}>
                                                 No team formed yet.
                                             </Typography>
                                         )}
@@ -1030,7 +1075,7 @@ export default function ProjectDetailsPage() {
                             </Stack>
                         </form>
                     )}
-                </Container>
+                </Box>
 
                 {/* Team Recommendations Modal (Owner only) */}
                 {isOwner && (
@@ -1054,11 +1099,11 @@ export default function ProjectDetailsPage() {
                     PaperProps={{
                         sx: {
                             borderRadius: 4,
-                            bgcolor: 'rgba(255, 255, 255, 0.03)',
-                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                            bgcolor: c.cardBg,
+                            border: c.cardBorder,
                             backdropFilter: 'blur(16px)',
-                            color: 'white',
-                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+                            color: c.textPrimary,
+                            boxShadow: c.shadowHover
                         }
                     }}
                 >
@@ -1066,7 +1111,7 @@ export default function ProjectDetailsPage() {
                         Delete Project
                     </DialogTitle>
                     <DialogContent>
-                        <Typography sx={{ color: 'rgba(255,255,255,0.7)', mt: 1 }}>
+                        <Typography sx={{ color: c.textSecondary, mt: 1 }}>
                             Are you sure you want to delete this project? This action cannot be undone.
                         </Typography>
                     </DialogContent>
@@ -1074,7 +1119,7 @@ export default function ProjectDetailsPage() {
                         <Button
                             onClick={() => setShowDeleteDialog(false)}
                             disabled={deleteLoading}
-                            sx={{ textTransform: 'none', color: 'rgba(255,255,255,0.6)' }}
+                            sx={{ textTransform: 'none', color: c.textSecondary }}
                         >
                             Cancel
                         </Button>
@@ -1106,11 +1151,11 @@ export default function ProjectDetailsPage() {
                     PaperProps={{
                         sx: {
                             borderRadius: 4,
-                            bgcolor: 'rgba(255, 255, 255, 0.03)',
-                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                            bgcolor: c.cardBg,
+                            border: c.cardBorder,
                             backdropFilter: 'blur(16px)',
-                            color: 'white',
-                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+                            color: c.textPrimary,
+                            boxShadow: c.shadowHover
                         }
                     }}
                 >
@@ -1127,8 +1172,8 @@ export default function ProjectDetailsPage() {
                                 fullWidth
                                 required
                                 sx={{
-                                    '& .MuiOutlinedInput-root': { borderRadius: 2, color: 'white', '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } },
-                                    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.5)' }
+                                    '& .MuiOutlinedInput-root': { borderRadius: 2, color: c.textPrimary, '& fieldset': { borderColor: c.borderLight } },
+                                    '& .MuiInputLabel-root': { color: c.textSecondary }
                                 }}
                             />
                             <TextField
@@ -1140,8 +1185,8 @@ export default function ProjectDetailsPage() {
                                 multiline
                                 rows={3}
                                 sx={{
-                                    '& .MuiOutlinedInput-root': { borderRadius: 2, color: 'white', '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } },
-                                    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.5)' }
+                                    '& .MuiOutlinedInput-root': { borderRadius: 2, color: c.textPrimary, '& fieldset': { borderColor: c.borderLight } },
+                                    '& .MuiInputLabel-root': { color: c.textSecondary }
                                 }}
                             />
                         </Stack>
@@ -1149,7 +1194,7 @@ export default function ProjectDetailsPage() {
                     <DialogActions sx={{ px: 3, pb: 2 }}>
                         <Button
                             onClick={() => setShowJoinDialog(false)}
-                            sx={{ textTransform: 'none', color: 'rgba(255,255,255,0.6)' }}
+                            sx={{ textTransform: 'none', color: c.textSecondary }}
                         >
                             Cancel
                         </Button>
@@ -1164,7 +1209,7 @@ export default function ProjectDetailsPage() {
                                 textTransform: 'none',
                                 fontWeight: 600,
                                 borderRadius: 2,
-                                '&:hover': { bgcolor: '#F0C040' }
+                                '&:hover': { bgcolor: c.mode === 'dark' ? '#F0C040' : '#B8972E' }
                             }}
                         >
                             {joinLoading ? 'Sending...' : 'Send Request'}

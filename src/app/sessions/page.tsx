@@ -11,11 +11,9 @@ import {
     CircularProgress,
     Alert,
     Button,
-    AvatarGroup,
 } from '@mui/material';
 import {
     Terminal,
-    ArrowForward,
     Code,
     AccessTime,
     InsertDriveFile,
@@ -27,9 +25,9 @@ import { useRouter } from 'next/navigation';
 import { projectApi } from '@/utils/projectApi';
 import { TopBar } from '@/components/shared/TopBar';
 import { DistortedBackground } from '@/components/shared/DistortedBackground';
+import { useThemeColors } from '@/context/ThemeContext';
 
 const MotionBox = motion(Box);
-const GOLD = '#D4AF37';
 
 interface RoomSession {
     room_id: string;
@@ -84,6 +82,8 @@ function getLanguageColor(lang?: string): string {
 
 export default function SessionsPage() {
     const router = useRouter();
+    const c = useThemeColors();
+    const GOLD = c.gold;
     const [sessions, setSessions] = useState<RoomSession[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -108,8 +108,8 @@ export default function SessionsPage() {
     return (
         <Box sx={{
             minHeight: '100vh',
-            bgcolor: '#050505',
-            color: 'white',
+            bgcolor: 'transparent',
+            color: c.textPrimary,
             overflowX: 'hidden',
             position: 'relative',
         }}>
@@ -117,18 +117,18 @@ export default function SessionsPage() {
             <TopBar />
 
             <Box sx={{ pt: '120px', pb: 8, position: 'relative', zIndex: 10 }}>
-                <Container maxWidth="lg">
+                <Box sx={{ width: { xs: '98%', sm: '90%', md: '85%', lg: '75%' }, maxWidth: '1300px', mx: 'auto' }}>
                     {/* Header */}
                     <Box sx={{ mb: 5 }}>
                         <Typography variant="h3" fontWeight="800" sx={{
                             letterSpacing: '-0.02em',
                             mb: 0.5,
                             fontFamily: 'Space Grotesk',
-                            color: 'white',
+                            color: c.textPrimary,
                         }}>
                             Sessions
                         </Typography>
-                        <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                        <Typography variant="body1" sx={{ color: c.textSecondary }}>
                             Your active collaboration coding sessions.
                         </Typography>
                     </Box>
@@ -142,21 +142,21 @@ export default function SessionsPage() {
                                 mb: 4,
                                 p: 2.5,
                                 borderRadius: '16px',
-                                bgcolor: 'rgba(255,255,255,0.02)',
-                                border: '1px solid rgba(255,255,255,0.05)',
+                                bgcolor: c.cardBg,
+                                border: c.cardBorder,
                                 backdropFilter: 'blur(10px)',
                             }}
                         >
                             <Stack direction="row" alignItems="center" spacing={1}>
                                 <Terminal sx={{ color: GOLD, fontSize: 22 }} />
-                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
-                                    <strong style={{ color: 'white' }}>{sessions.length}</strong> {sessions.length === 1 ? 'Session' : 'Sessions'}
+                                <Typography variant="body2" sx={{ color: c.textSecondary }}>
+                                    <strong style={{ color: c.textPrimary }}>{sessions.length}</strong> {sessions.length === 1 ? 'Session' : 'Sessions'}
                                 </Typography>
                             </Stack>
                             <Stack direction="row" alignItems="center" spacing={1}>
                                 <InsertDriveFile sx={{ color: '#60a5fa', fontSize: 22 }} />
-                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
-                                    <strong style={{ color: 'white' }}>
+                                <Typography variant="body2" sx={{ color: c.textSecondary }}>
+                                    <strong style={{ color: c.textPrimary }}>
                                         {sessions.reduce((acc, s) => acc + (s.files?.length || 0), 0)}
                                     </strong> Total Files
                                 </Typography>
@@ -187,12 +187,12 @@ export default function SessionsPage() {
                         <AnimatePresence>
                             <Stack spacing={3}>
                                 {sessions.map((session, i) => (
-                                    <SessionCard key={session.room_id} session={session} index={i} router={router} />
+                                    <SessionCard key={session.room_id} session={session} index={i} router={router} c={c} GOLD={GOLD} />
                                 ))}
                             </Stack>
                         </AnimatePresence>
                     )}
-                </Container>
+                </Box>
             </Box>
         </Box>
     );
@@ -202,6 +202,8 @@ export default function SessionsPage() {
 
 function EmptyState() {
     const router = useRouter();
+    const c = useThemeColors();
+    const GOLD = c.gold;
     return (
         <MotionBox
             initial={{ opacity: 0, y: 20 }}
@@ -210,17 +212,17 @@ function EmptyState() {
                 textAlign: 'center',
                 py: 10,
                 borderRadius: 4,
-                bgcolor: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.05)',
+                bgcolor: c.cardBg,
+                border: c.cardBorder,
             }}
         >
-            <Box sx={{ color: 'rgba(255,255,255,0.1)', mb: 2 }}>
+            <Box sx={{ color: c.borderLight, mb: 2 }}>
                 <Terminal sx={{ fontSize: 56 }} />
             </Box>
-            <Typography variant="h6" sx={{ color: 'white', mb: 0.5, fontFamily: 'Space Grotesk' }}>
+            <Typography variant="h6" sx={{ color: c.textPrimary, mb: 0.5, fontFamily: 'Space Grotesk' }}>
                 No sessions yet
             </Typography>
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)', mb: 3 }}>
+            <Typography variant="body2" sx={{ color: c.textMuted, mb: 3 }}>
                 Start a collaboration session from any project with a generated roadmap.
             </Typography>
             <Button
@@ -234,7 +236,7 @@ function EmptyState() {
                     borderRadius: '12px',
                     px: 3,
                     '&:hover': {
-                        bgcolor: 'rgba(212,175,55,0.1)',
+                        bgcolor: c.goldBg,
                         borderColor: GOLD,
                     },
                 }}
@@ -245,7 +247,7 @@ function EmptyState() {
     );
 }
 
-function SessionCard({ session, index, router }: { session: RoomSession; index: number; router: any }) {
+function SessionCard({ session, index, router, c, GOLD }: { session: RoomSession; index: number; router: any; c: any; GOLD: string }) {
     const fileCount = session.files?.length || 0;
     const participantCount = session.participants?.length || 0;
 
@@ -264,8 +266,8 @@ function SessionCard({ session, index, router }: { session: RoomSession; index: 
             transition={{ delay: index * 0.06 }}
             onClick={() => router.push(`/room/${session.room_id}`)}
             sx={{
-                bgcolor: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.05)',
+                bgcolor: c.cardBg,
+                border: c.cardBorder,
                 backdropFilter: 'blur(10px)',
                 borderRadius: '16px',
                 p: 3,
@@ -273,8 +275,8 @@ function SessionCard({ session, index, router }: { session: RoomSession; index: 
                 transition: 'all 0.3s ease',
                 '&:hover': {
                     borderColor: '#34d399',
-                    bgcolor: 'rgba(255,255,255,0.05)',
-                    boxShadow: `0 0 25px rgba(52, 211, 153, 0.1)`,
+                    bgcolor: c.surfaceHover,
+                    boxShadow: '0 0 25px rgba(52, 211, 153, 0.1)',
                     transform: 'translateY(-2px)',
                 },
             }}
@@ -302,7 +304,7 @@ function SessionCard({ session, index, router }: { session: RoomSession; index: 
                     <Box sx={{ flex: 1 }}>
                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
                             <Typography variant="subtitle1" fontWeight="700" sx={{
-                                color: 'white',
+                                color: c.textPrimary,
                                 fontFamily: 'Space Grotesk',
                             }}>
                                 {session.project_title || 'Untitled Session'}
@@ -325,15 +327,15 @@ function SessionCard({ session, index, router }: { session: RoomSession; index: 
                         {/* Stats row */}
                         <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 1 }}>
                             <Stack direction="row" alignItems="center" spacing={0.5}>
-                                <InsertDriveFile sx={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }} />
-                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                                <InsertDriveFile sx={{ fontSize: 14, color: c.textMuted }} />
+                                <Typography variant="body2" sx={{ color: c.textSecondary }}>
                                     {fileCount} {fileCount === 1 ? 'file' : 'files'}
                                 </Typography>
                             </Stack>
                             {participantCount > 0 && (
                                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                                    <People sx={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }} />
-                                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                                    <People sx={{ fontSize: 14, color: c.textMuted }} />
+                                    <Typography variant="body2" sx={{ color: c.textSecondary }}>
                                         {participantCount} {participantCount === 1 ? 'participant' : 'participants'}
                                     </Typography>
                                 </Stack>
@@ -367,8 +369,8 @@ function SessionCard({ session, index, router }: { session: RoomSession; index: 
                 {/* Right: Meta + CTA */}
                 <Stack alignItems={{ xs: 'flex-start', sm: 'flex-end' }} spacing={1}>
                     <Stack direction="row" alignItems="center" spacing={0.5}>
-                        <AccessTime sx={{ fontSize: 14, color: 'rgba(255,255,255,0.3)' }} />
-                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.35)' }}>
+                        <AccessTime sx={{ fontSize: 14, color: c.textMuted }} />
+                        <Typography variant="caption" sx={{ color: c.textSecondary }}>
                             Created {timeAgo(session.created_at)}
                         </Typography>
                     </Stack>
@@ -403,7 +405,7 @@ function SessionCard({ session, index, router }: { session: RoomSession; index: 
 
             {/* File list preview */}
             {fileCount > 0 && (
-                <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2, pt: 2, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2, pt: 2, borderTop: c.borderLight }}>
                     {(session.files || []).slice(0, 6).map(file => (
                         <Chip
                             key={file.id}
@@ -411,12 +413,12 @@ function SessionCard({ session, index, router }: { session: RoomSession; index: 
                             label={file.name}
                             size="small"
                             sx={{
-                                bgcolor: 'rgba(255,255,255,0.04)',
-                                color: 'rgba(255,255,255,0.6)',
+                                bgcolor: c.surfaceHover,
+                                color: c.textSecondary,
                                 fontWeight: 500,
                                 fontSize: '0.7rem',
                                 borderRadius: '8px',
-                                border: '1px solid rgba(255,255,255,0.06)',
+                                border: c.borderLight,
                             }}
                         />
                     ))}
@@ -425,8 +427,8 @@ function SessionCard({ session, index, router }: { session: RoomSession; index: 
                             label={`+${fileCount - 6} more`}
                             size="small"
                             sx={{
-                                bgcolor: 'rgba(255,255,255,0.04)',
-                                color: 'rgba(255,255,255,0.4)',
+                                bgcolor: c.surfaceHover,
+                                color: c.textMuted,
                                 fontSize: '0.7rem',
                                 borderRadius: '8px',
                             }}

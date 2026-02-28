@@ -20,14 +20,12 @@ import { projectApi, InvitationResponse } from '@/utils/projectApi';
 import { profileApi } from '@/utils/profileApi';
 import { TopBar } from '@/components/shared/TopBar';
 import { DistortedBackground } from '@/components/shared/DistortedBackground';
-
-// ============ CONFIG ============
-const GOLD = '#D4AF37';
-const DARK_BG = '#050505';
+import { useThemeColors } from '@/context/ThemeContext';
 
 // ============ COMPONENTS ============
 
 const HeroSection = () => {
+    const c = useThemeColors();
     return (
         <Box sx={{
             height: '80vh',
@@ -51,7 +49,7 @@ const HeroSection = () => {
                     fontSize: { xs: '3rem', md: '6rem', lg: '8rem' },
                     lineHeight: 0.9,
                     letterSpacing: '-0.03em',
-                    color: 'white',
+                    color: c.textPrimary,
                     whiteSpace: 'nowrap',
                     overflow: 'visible'
                 }}>
@@ -61,11 +59,11 @@ const HeroSection = () => {
                         display: 'inline-block',
                         width: { xs: 15, md: 25 },
                         height: { xs: 15, md: 25 },
-                        bgcolor: GOLD,
+                        bgcolor: c.gold,
                         borderRadius: '50%',
                         ml: 2,
                         mb: { xs: 1, md: 3 },
-                        boxShadow: `0 0 30px ${GOLD}`
+                        boxShadow: `0 0 30px ${c.gold}`
                     }} />
                 </Typography>
             </motion.div>
@@ -78,7 +76,7 @@ const HeroSection = () => {
                 <Typography variant="h6" sx={{
                     fontFamily: 'Space Grotesk',
                     fontWeight: 400,
-                    color: 'rgba(255,255,255,0.7)',
+                    color: c.textSecondary,
                     mt: 4,
                     maxWidth: '600px',
                     fontSize: { xs: '1rem', md: '1.25rem' },
@@ -94,7 +92,9 @@ const HeroSection = () => {
 
 // ============ DATA COMPONENTS ============
 
-const InviteRow = ({ invite, index }: { invite: InvitationResponse, index: number }) => {
+const InviteRow = ({ invite, index }: { invite: any, index: number }) => {
+    const c = useThemeColors();
+    const router = useRouter();
     return (
         <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -103,8 +103,8 @@ const InviteRow = ({ invite, index }: { invite: InvitationResponse, index: numbe
             transition={{ duration: 0.5, delay: index * 0.1 }}
         >
             <Box sx={{
-                border: '1px solid rgba(255,255,255,0.05)',
-                bgcolor: 'rgba(255,255,255,0.02)',
+                border: c.cardBorder,
+                bgcolor: c.cardBg,
                 p: 3,
                 borderRadius: '4px',
                 mb: 2,
@@ -113,12 +113,12 @@ const InviteRow = ({ invite, index }: { invite: InvitationResponse, index: numbe
                 justifyContent: 'space-between',
             }}>
                 <Stack direction="row" spacing={2} alignItems="center">
-                    <Avatar sx={{ bgcolor: 'rgba(212, 175, 55, 0.2)', color: GOLD }}><Mail /></Avatar>
+                    <Avatar sx={{ bgcolor: c.goldBg, color: c.gold }}><Mail /></Avatar>
                     <Box>
-                        <Typography variant="subtitle1" sx={{ color: 'white', fontFamily: 'Space Grotesk', fontWeight: 600 }}>
+                        <Typography variant="subtitle1" sx={{ color: c.textPrimary, fontFamily: 'Space Grotesk', fontWeight: 600 }}>
                             {invite.project_title}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                        <Typography variant="caption" sx={{ color: c.textSecondary }}>
                             Role: {invite.role}
                         </Typography>
                     </Box>
@@ -126,7 +126,8 @@ const InviteRow = ({ invite, index }: { invite: InvitationResponse, index: numbe
                 <Button
                     size="small"
                     variant="outlined"
-                    sx={{ color: GOLD, borderColor: GOLD, fontFamily: 'Space Grotesk', '&:hover': { bgcolor: 'rgba(212,175,55,0.1)' } }}
+                    onClick={() => router.push('/invitations')}
+                    sx={{ color: c.gold, borderColor: c.gold, fontFamily: 'Space Grotesk', '&:hover': { bgcolor: c.goldBg } }}
                 >
                     Review
                 </Button>
@@ -137,6 +138,7 @@ const InviteRow = ({ invite, index }: { invite: InvitationResponse, index: numbe
 
 const ProjectRow = ({ project, index }: { project: any, index: number }) => {
     const router = useRouter();
+    const c = useThemeColors();
     return (
         <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -147,7 +149,7 @@ const ProjectRow = ({ project, index }: { project: any, index: number }) => {
             <Box
                 onClick={() => router.push(`/projects/${project.id}`)}
                 sx={{
-                    borderTop: '1px solid rgba(255,255,255,0.1)',
+                    borderTop: `1px solid ${c.divider}`,
                     py: 4,
                     display: 'flex',
                     alignItems: 'center',
@@ -155,28 +157,28 @@ const ProjectRow = ({ project, index }: { project: any, index: number }) => {
                     cursor: 'pointer',
                     transition: 'all 0.5s ease',
                     '&:hover': {
-                        bgcolor: 'rgba(255,255,255,0.02)',
+                        bgcolor: c.surfaceHover,
                         pl: 2
                     }
                 }}
             >
                 <Box>
-                    <Typography variant="caption" sx={{ color: GOLD, fontFamily: 'Space Grotesk', mb: 1, display: 'block' }}>
+                    <Typography variant="caption" sx={{ color: c.gold, fontFamily: 'Space Grotesk', mb: 1, display: 'block' }}>
                         0{index + 1} / {project.status?.toUpperCase() || 'ACTIVE'}
                     </Typography>
                     <Typography variant="h4" sx={{
                         fontFamily: 'Space Grotesk',
                         fontWeight: 600,
-                        color: 'white',
+                        color: c.textPrimary,
                         fontSize: { xs: '1.5rem', md: '2.5rem' }
                     }}>
                         {project.title}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)', mt: 1, maxWidth: '500px' }}>
+                    <Typography variant="body2" sx={{ color: c.textMuted, mt: 1, maxWidth: '500px' }}>
                         {project.description}
                     </Typography>
                 </Box>
-                <ArrowForward sx={{ color: 'rgba(255,255,255,0.3)', fontSize: 40, transform: 'rotate(-45deg)', transition: '0.3s', '.MuiBox-root:hover &': { color: GOLD, transform: 'rotate(0deg)' } }} />
+                <ArrowForward sx={{ color: c.textMuted, fontSize: 40, transform: 'rotate(-45deg)', transition: '0.3s', '.MuiBox-root:hover &': { color: c.gold, transform: 'rotate(0deg)' } }} />
             </Box>
         </motion.div>
     );
@@ -186,6 +188,7 @@ const DashboardContent = () => {
     const [projects, setProjects] = useState<any[]>([]);
     const [invites, setInvites] = useState<InvitationResponse[]>([]);
     const [loading, setLoading] = useState(true);
+    const c = useThemeColors();
 
     const router = useRouter();
 
@@ -223,19 +226,19 @@ const DashboardContent = () => {
                 {/* Recent Projects Column */}
                 <Box sx={{ flex: 2, width: '100%' }}>
                     <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
-                        <Lens sx={{ fontSize: 12, color: GOLD }} />
-                        <Typography variant="overline" sx={{ color: 'white', letterSpacing: '0.2em', fontSize: '1rem', fontFamily: 'Space Grotesk' }}>
+                        <Lens sx={{ fontSize: 12, color: c.gold }} />
+                        <Typography variant="overline" sx={{ color: c.textPrimary, letterSpacing: '0.2em', fontSize: '1rem', fontFamily: 'Space Grotesk' }}>
                             RECENT PROJECTS
                         </Typography>
                     </Stack>
 
                     <Box>
                         {loading ? (
-                            <CircularProgress sx={{ color: GOLD }} />
+                            <CircularProgress sx={{ color: c.gold }} />
                         ) : projects.length > 0 ? (
                             projects.map((p, i) => <ProjectRow key={p.id} project={p} index={i} />)
                         ) : (
-                            <Typography variant="h5" sx={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'Space Grotesk' }}>
+                            <Typography variant="h5" sx={{ color: c.textMuted, fontFamily: 'Space Grotesk' }}>
                                 No recent projects. Start one now.
                             </Typography>
                         )}
@@ -245,20 +248,20 @@ const DashboardContent = () => {
                 {/* Recent Invites / Quick Stats Column */}
                 <Box sx={{ flex: 1, width: '100%' }}>
                     <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
-                        <Lens sx={{ fontSize: 12, color: GOLD }} />
-                        <Typography variant="overline" sx={{ color: 'white', letterSpacing: '0.2em', fontSize: '1rem', fontFamily: 'Space Grotesk' }}>
+                        <Lens sx={{ fontSize: 12, color: c.gold }} />
+                        <Typography variant="overline" sx={{ color: c.textPrimary, letterSpacing: '0.2em', fontSize: '1rem', fontFamily: 'Space Grotesk' }}>
                             MISSION INVITES
                         </Typography>
                     </Stack>
 
                     <Box>
                         {loading ? (
-                            <CircularProgress sx={{ color: GOLD }} />
+                            <CircularProgress sx={{ color: c.gold }} />
                         ) : invites.length > 0 ? (
                             invites.map((inv, i) => <InviteRow key={inv.id} invite={inv} index={i} />)
                         ) : (
-                            <Box sx={{ border: '1px dashed rgba(255,255,255,0.1)', p: 4, borderRadius: 2 }}>
-                                <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'Space Grotesk' }}>
+                            <Box sx={{ border: `1px dashed ${c.divider}`, p: 4, borderRadius: 2 }}>
+                                <Typography variant="body1" sx={{ color: c.textMuted, fontFamily: 'Space Grotesk' }}>
                                     No pending invitations.
                                 </Typography>
                             </Box>
@@ -267,10 +270,10 @@ const DashboardContent = () => {
 
                     {/* Compact Stats */}
                     <Box sx={{ mt: 8 }}>
-                        <Typography variant="h4" sx={{ fontFamily: 'Space Grotesk', color: GOLD, fontWeight: 700 }}>
+                        <Typography variant="h4" sx={{ fontFamily: 'Space Grotesk', color: c.gold, fontWeight: 700 }}>
                             {projects.length}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>
+                        <Typography variant="caption" sx={{ color: c.textSecondary, textTransform: 'uppercase' }}>
                             Active Deployments
                         </Typography>
                     </Box>
@@ -278,11 +281,11 @@ const DashboardContent = () => {
             </Box>
 
             {/* Bottom Footer Area */}
-            <Box sx={{ mt: 15, borderTop: '1px solid rgba(255,255,255,0.1)', pt: 4, display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.3)' }}>
+            <Box sx={{ mt: 15, borderTop: `1px solid ${c.divider}`, pt: 4, display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="caption" sx={{ color: c.textMuted }}>
                     © 2026 devcollab inc.
                 </Typography>
-                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.3)' }}>
+                <Typography variant="caption" sx={{ color: c.textMuted }}>
                     SYSTEM OPERATIONAL
                 </Typography>
             </Box>
@@ -294,8 +297,8 @@ export default function DashboardPage() {
     return (
         <Box sx={{
             minHeight: '100vh',
-            bgcolor: DARK_BG,
-            color: 'white',
+            bgcolor: 'transparent',
+            color: 'inherit',
             overflowX: 'hidden',
             position: 'relative',
         }}>

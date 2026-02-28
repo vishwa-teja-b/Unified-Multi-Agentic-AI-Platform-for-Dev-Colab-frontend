@@ -34,14 +34,16 @@ import { profileApi, ProfileData } from '@/utils/profileApi';
 import { motion } from 'framer-motion';
 import { TopBar } from '@/components/shared/TopBar';
 import { DistortedBackground } from '@/components/shared/DistortedBackground';
+import { useThemeColors } from '@/context/ThemeContext';
 
 const MotionBox = motion(Box);
-const GOLD = '#D4AF37';
 
 export default function ProfilePage() {
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const c = useThemeColors();
+    const GOLD = c.gold;
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -68,7 +70,7 @@ export default function ProfilePage() {
                 justifyContent: 'center',
                 alignItems: 'center',
                 minHeight: '100vh',
-                bgcolor: '#050505',
+                bgcolor: 'transparent',
             }}>
                 <CircularProgress sx={{ color: GOLD }} />
             </Box>
@@ -80,8 +82,8 @@ export default function ProfilePage() {
     return (
         <Box sx={{
             minHeight: '100vh',
-            bgcolor: '#050505',
-            color: 'white',
+            bgcolor: 'transparent',
+            color: c.textPrimary,
             overflowX: 'hidden',
             position: 'relative',
         }}>
@@ -96,8 +98,8 @@ export default function ProfilePage() {
                         startIcon={<Edit />}
                         onClick={() => router.push('/profile/create')}
                         sx={{
-                            borderColor: 'rgba(255,255,255,0.2)',
-                            color: 'white',
+                            borderColor: c.border,
+                            color: c.textPrimary,
                             borderRadius: '50px',
                             textTransform: 'none',
                             fontWeight: 600,
@@ -105,10 +107,10 @@ export default function ProfilePage() {
                             py: 1,
                             fontFamily: 'Space Grotesk',
                             backdropFilter: 'blur(10px)',
-                            bgcolor: 'rgba(255,255,255,0.05)',
+                            bgcolor: c.surface,
                             '&:hover': {
                                 borderColor: GOLD,
-                                bgcolor: 'rgba(255,255,255,0.1)',
+                                bgcolor: c.surfaceHover,
                                 color: GOLD,
                             },
                         }}
@@ -124,14 +126,15 @@ export default function ProfilePage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
                         sx={{
-                            background: 'rgba(255,255,255,0.03)',
+                            background: c.cardBg,
                             backdropFilter: 'blur(20px)',
-                            border: '1px solid rgba(255,255,255,0.05)',
+                            border: c.cardBorder,
                             borderRadius: '32px',
                             p: { xs: 4, md: 5 },
                             mb: 4,
                             position: 'relative',
                             overflow: 'hidden',
+                            boxShadow: c.shadowHover,
                         }}
                     >
                         {/* Top gradient accent */}
@@ -160,11 +163,11 @@ export default function ProfilePage() {
                                     sx={{
                                         width: 120,
                                         height: 120,
-                                        bgcolor: 'rgba(255,255,255,0.05)',
+                                        bgcolor: c.surfaceHover,
                                         color: GOLD,
                                         fontSize: '3rem',
                                         fontWeight: 700,
-                                        border: '4px solid #050505',
+                                        border: `4px solid ${c.bg}`,
                                         fontFamily: 'Space Grotesk',
                                         boxShadow: `0 8px 32px rgba(0,0,0,0.5)`,
                                     }}
@@ -182,7 +185,7 @@ export default function ProfilePage() {
                                         sx={{
                                             fontWeight: 800,
                                             fontSize: { xs: '2rem', md: '2.5rem' },
-                                            color: 'white',
+                                            color: c.textPrimary,
                                             letterSpacing: '-0.02em',
                                             fontFamily: 'Space Grotesk',
                                         }}
@@ -192,7 +195,7 @@ export default function ProfilePage() {
                                     <Verified sx={{ color: GOLD, fontSize: 24 }} />
                                 </Stack>
 
-                                <Typography sx={{ color: 'rgba(255,255,255,0.5)', mb: 2, fontSize: '1.1rem', fontFamily: 'Space Grotesk' }}>
+                                <Typography sx={{ color: c.textSecondary, mb: 2, fontSize: '1.1rem', fontFamily: 'Space Grotesk' }}>
                                     @{profile.username}
                                 </Typography>
 
@@ -222,20 +225,20 @@ export default function ProfilePage() {
                                 >
                                     {profile.city && (
                                         <Stack direction="row" spacing={1} alignItems="center">
-                                            <LocationOn sx={{ color: 'rgba(255,255,255,0.4)', fontSize: 18 }} />
-                                            <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>
+                                            <LocationOn sx={{ color: c.textMuted, fontSize: 18 }} />
+                                            <Typography sx={{ color: c.textSecondary, fontSize: '0.9rem' }}>
                                                 {profile.city}{profile.country ? `, ${profile.country}` : ''}
                                             </Typography>
                                         </Stack>
                                     )}
                                     <Stack direction="row" spacing={1} alignItems="center">
-                                        <Email sx={{ color: 'rgba(255,255,255,0.4)', fontSize: 18 }} />
-                                        <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>{profile.email}</Typography>
+                                        <Email sx={{ color: c.textMuted, fontSize: 18 }} />
+                                        <Typography sx={{ color: c.textSecondary, fontSize: '0.9rem' }}>{profile.email}</Typography>
                                     </Stack>
                                     {profile.availability_hours && (
                                         <Stack direction="row" spacing={1} alignItems="center">
-                                            <Schedule sx={{ color: 'rgba(255,255,255,0.4)', fontSize: 18 }} />
-                                            <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>{profile.availability_hours} hrs/week</Typography>
+                                            <Schedule sx={{ color: c.textMuted, fontSize: 18 }} />
+                                            <Typography sx={{ color: c.textSecondary, fontSize: '0.9rem' }}>{profile.availability_hours} hrs/week</Typography>
                                         </Stack>
                                     )}
                                 </Stack>
@@ -254,16 +257,16 @@ export default function ProfilePage() {
                                                     href={item.link}
                                                     target="_blank"
                                                     sx={{
-                                                        bgcolor: 'rgba(255,255,255,0.05)',
-                                                        color: 'white',
-                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                        bgcolor: c.surface,
+                                                        color: c.textPrimary,
+                                                        border: c.borderLight,
                                                         width: 40,
                                                         height: 40,
                                                         transition: 'all 0.2s ease',
                                                         '&:hover': {
                                                             borderColor: GOLD,
                                                             color: GOLD,
-                                                            bgcolor: 'rgba(255,255,255,0.08)',
+                                                            bgcolor: c.surfaceHover,
                                                             transform: 'translateY(-2px)',
                                                         },
                                                     }}
@@ -289,18 +292,18 @@ export default function ProfilePage() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.5, delay: 0.1 }}
                                     sx={{
-                                        bgcolor: 'rgba(255,255,255,0.02)',
+                                        bgcolor: c.cardBg,
                                         backdropFilter: 'blur(16px)',
-                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        border: c.cardBorder,
                                         borderRadius: 4,
                                         p: 4,
                                     }}
                                 >
-                                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', mb: 2, display: 'flex', alignItems: 'center', gap: 1.5, fontFamily: 'Space Grotesk' }}>
+                                    <Typography variant="h6" sx={{ fontWeight: 700, color: c.textPrimary, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5, fontFamily: 'Space Grotesk' }}>
                                         <Box sx={{ color: GOLD, fontSize: '1.2rem' }}>✦</Box>
                                         About Me
                                     </Typography>
-                                    <Typography sx={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.8, fontSize: '1rem' }}>
+                                    <Typography sx={{ color: c.textSecondary, lineHeight: 1.8, fontSize: '1rem' }}>
                                         {profile.bio || 'No bio provided yet.'}
                                     </Typography>
                                 </MotionBox>
@@ -311,9 +314,9 @@ export default function ProfilePage() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.5, delay: 0.2 }}
                                     sx={{
-                                        bgcolor: 'rgba(255,255,255,0.02)',
+                                        bgcolor: c.cardBg,
                                         backdropFilter: 'blur(16px)',
-                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        border: c.cardBorder,
                                         borderRadius: 4,
                                         p: 4,
                                     }}
@@ -322,17 +325,17 @@ export default function ProfilePage() {
                                         <Box sx={{
                                             p: 1,
                                             borderRadius: '8px',
-                                            bgcolor: 'rgba(255,255,255,0.05)',
+                                            bgcolor: c.surfaceHover,
                                             color: GOLD,
                                             display: 'flex',
                                         }}>
                                             <Code sx={{ fontSize: 20 }} />
                                         </Box>
-                                        <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', fontFamily: 'Space Grotesk' }}>Skills & Stack</Typography>
+                                        <Typography variant="h6" sx={{ fontWeight: 700, color: c.textPrimary, fontFamily: 'Space Grotesk' }}>Skills & Stack</Typography>
                                     </Stack>
 
                                     {/* Primary Skills */}
-                                    <Typography sx={{ color: 'rgba(255,255,255,0.4)', mb: 1.5, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.7rem', fontWeight: 600, fontFamily: 'Space Grotesk' }}>
+                                    <Typography sx={{ color: c.textMuted, mb: 1.5, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.7rem', fontWeight: 600, fontFamily: 'Space Grotesk' }}>
                                         Primary Skills
                                     </Typography>
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 4 }}>
@@ -341,24 +344,24 @@ export default function ProfilePage() {
                                                 key={skill}
                                                 label={skill}
                                                 sx={{
-                                                    bgcolor: 'rgba(212, 175, 55, 0.15)',
+                                                    bgcolor: c.goldBg,
                                                     color: '#F0C040',
-                                                    border: '1px solid rgba(212, 175, 55, 0.2)',
+                                                    border: `1px solid ${c.goldBorder}`,
                                                     fontWeight: 600,
                                                     fontSize: '0.85rem',
                                                     height: 32,
                                                     borderRadius: '8px',
                                                     fontFamily: 'Space Grotesk',
-                                                    '&:hover': { bgcolor: 'rgba(212, 175, 55, 0.25)' },
+                                                    '&:hover': { bgcolor: c.goldMuted },
                                                 }}
                                             />
                                         )) : (
-                                            <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem' }}>No primary skills listed</Typography>
+                                            <Typography sx={{ color: c.textMuted, fontSize: '0.9rem' }}>No primary skills listed</Typography>
                                         )}
                                     </Box>
 
                                     {/* Secondary Skills */}
-                                    <Typography sx={{ color: 'rgba(255,255,255,0.4)', mb: 1.5, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.7rem', fontWeight: 600, fontFamily: 'Space Grotesk' }}>
+                                    <Typography sx={{ color: c.textMuted, mb: 1.5, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.7rem', fontWeight: 600, fontFamily: 'Space Grotesk' }}>
                                         Secondary Skills
                                     </Typography>
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -368,20 +371,20 @@ export default function ProfilePage() {
                                                 label={skill}
                                                 variant="outlined"
                                                 sx={{
-                                                    borderColor: 'rgba(255,255,255,0.1)',
-                                                    color: 'rgba(255,255,255,0.6)',
+                                                    borderColor: c.borderLight,
+                                                    color: c.textSecondary,
                                                     fontWeight: 500,
                                                     fontSize: '0.85rem',
                                                     height: 30,
                                                     borderRadius: '8px',
                                                     '&:hover': {
-                                                        borderColor: 'rgba(255,255,255,0.3)',
-                                                        color: 'white',
+                                                        borderColor: c.border,
+                                                        color: c.textPrimary,
                                                     },
                                                 }}
                                             />
                                         )) : (
-                                            <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem' }}>No secondary skills listed</Typography>
+                                            <Typography sx={{ color: c.textMuted, fontSize: '0.9rem' }}>No secondary skills listed</Typography>
                                         )}
                                     </Box>
                                 </MotionBox>
@@ -397,8 +400,8 @@ export default function ProfilePage() {
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ duration: 0.5, delay: 0.3 }}
                                     sx={{
-                                        bgcolor: 'rgba(255,255,255,0.02)',
-                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        bgcolor: c.cardBg,
+                                        border: c.cardBorder,
                                         borderRadius: 4,
                                         p: 3,
                                     }}
@@ -407,19 +410,19 @@ export default function ProfilePage() {
                                         <Box sx={{
                                             p: 1,
                                             borderRadius: '8px',
-                                            bgcolor: 'rgba(255,255,255,0.05)',
+                                            bgcolor: c.surfaceHover,
                                             color: GOLD,
                                             display: 'flex',
                                         }}>
                                             <TrendingUp sx={{ fontSize: 20 }} />
                                         </Box>
-                                        <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', fontFamily: 'Space Grotesk' }}>Experience</Typography>
+                                        <Typography variant="h6" sx={{ fontWeight: 700, color: c.textPrimary, fontFamily: 'Space Grotesk' }}>Experience</Typography>
                                     </Stack>
                                     <Chip
                                         label={profile.experience_level || 'Not specified'}
                                         sx={{
-                                            bgcolor: 'rgba(255,255,255,0.05)',
-                                            color: 'white',
+                                            bgcolor: c.surfaceHover,
+                                            color: c.textPrimary,
                                             fontWeight: 600,
                                             textTransform: 'capitalize',
                                             fontSize: '0.9rem',
@@ -436,8 +439,8 @@ export default function ProfilePage() {
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ duration: 0.5, delay: 0.4 }}
                                     sx={{
-                                        bgcolor: 'rgba(255,255,255,0.02)',
-                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        bgcolor: c.cardBg,
+                                        border: c.cardBorder,
                                         borderRadius: 4,
                                         p: 3,
                                     }}
@@ -446,13 +449,13 @@ export default function ProfilePage() {
                                         <Box sx={{
                                             p: 1,
                                             borderRadius: '8px',
-                                            bgcolor: 'rgba(255,255,255,0.05)',
+                                            bgcolor: c.surfaceHover,
                                             color: GOLD,
                                             display: 'flex',
                                         }}>
                                             <Translate sx={{ fontSize: 20 }} />
                                         </Box>
-                                        <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', fontFamily: 'Space Grotesk' }}>Languages</Typography>
+                                        <Typography variant="h6" sx={{ fontWeight: 700, color: c.textPrimary, fontFamily: 'Space Grotesk' }}>Languages</Typography>
                                     </Stack>
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                                         {profile.languages?.length > 0 ? profile.languages.map((lang) => (
@@ -461,14 +464,14 @@ export default function ProfilePage() {
                                                 label={lang}
                                                 size="small"
                                                 sx={{
-                                                    bgcolor: 'rgba(255,255,255,0.05)',
-                                                    color: 'rgba(255,255,255,0.8)',
+                                                    bgcolor: c.surfaceHover,
+                                                    color: c.textPrimary,
                                                     fontSize: '0.85rem',
                                                     borderRadius: '6px',
                                                 }}
                                             />
                                         )) : (
-                                            <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem' }}>None listed</Typography>
+                                            <Typography sx={{ color: c.textMuted, fontSize: '0.9rem' }}>None listed</Typography>
                                         )}
                                     </Box>
                                 </MotionBox>
@@ -479,8 +482,8 @@ export default function ProfilePage() {
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ duration: 0.5, delay: 0.5 }}
                                     sx={{
-                                        bgcolor: 'rgba(255,255,255,0.02)',
-                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        bgcolor: c.cardBg,
+                                        border: c.cardBorder,
                                         borderRadius: 4,
                                         p: 3,
                                     }}
@@ -489,13 +492,13 @@ export default function ProfilePage() {
                                         <Box sx={{
                                             p: 1,
                                             borderRadius: '8px',
-                                            bgcolor: 'rgba(255,255,255,0.05)',
+                                            bgcolor: c.surfaceHover,
                                             color: GOLD,
                                             display: 'flex',
                                         }}>
                                             <Interests sx={{ fontSize: 20 }} />
                                         </Box>
-                                        <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', fontFamily: 'Space Grotesk' }}>Interests</Typography>
+                                        <Typography variant="h6" sx={{ fontWeight: 700, color: c.textPrimary, fontFamily: 'Space Grotesk' }}>Interests</Typography>
                                     </Stack>
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                                         {profile.interests?.length > 0 ? profile.interests.map((interest) => (
@@ -504,14 +507,14 @@ export default function ProfilePage() {
                                                 label={interest}
                                                 size="small"
                                                 sx={{
-                                                    bgcolor: 'rgba(255,255,255,0.05)',
-                                                    color: 'rgba(255,255,255,0.8)',
+                                                    bgcolor: c.surfaceHover,
+                                                    color: c.textPrimary,
                                                     fontSize: '0.85rem',
                                                     borderRadius: '6px',
                                                 }}
                                             />
                                         )) : (
-                                            <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem' }}>None listed</Typography>
+                                            <Typography sx={{ color: c.textMuted, fontSize: '0.9rem' }}>None listed</Typography>
                                         )}
                                     </Box>
                                 </MotionBox>

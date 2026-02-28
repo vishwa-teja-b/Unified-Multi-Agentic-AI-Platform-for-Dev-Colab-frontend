@@ -112,9 +112,28 @@ export default function RoadmapView({ roadmap, extractedFeatures, onTaskMove, cu
 
     const currentSprint = roadmap[selectedSprintIndex];
 
-    // Determine if the selected sprint is locked
+    // Determine highest unlocked sprint based on task completion
     const activeSprintNum = currentSprintNumber ?? 1;
-    const isSprintLocked = currentSprint.sprint_number > activeSprintNum;
+
+    const getHighestUnlockedSprint = () => {
+        let maxUnlocked = activeSprintNum;
+        for (let num = activeSprintNum; num <= roadmap.length; num++) {
+            const sprintData = roadmap.find(s => s.sprint_number === num);
+            if (!sprintData || !sprintData.tasks || sprintData.tasks.length === 0) {
+                break;
+            }
+            const allDone = sprintData.tasks.every(t => t.status.toLowerCase() === 'done');
+            if (allDone) {
+                maxUnlocked = Math.max(maxUnlocked, num + 1);
+            } else {
+                break;
+            }
+        }
+        return maxUnlocked;
+    };
+
+    const highestUnlockedSprint = getHighestUnlockedSprint();
+    const isSprintLocked = currentSprint.sprint_number > highestUnlockedSprint;
 
     const handleDragStart = (e: React.DragEvent, taskId: string) => {
         if (isSprintLocked) return;
@@ -163,7 +182,7 @@ export default function RoadmapView({ roadmap, extractedFeatures, onTaskMove, cu
                 sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
             >
                 {roadmap.map((sprint, i) => {
-                    const locked = sprint.sprint_number > activeSprintNum;
+                    const locked = sprint.sprint_number > highestUnlockedSprint;
                     return (
                         <Tab
                             key={i}

@@ -74,14 +74,22 @@
 - **Code Execution** — Run code in 12+ languages via self-hosted Piston (Docker)
 - **Console Output** — Expandable console panel with compile/runtime error handling
 - **Whiteboard** — Shared tldraw infinite canvas for brainstorming and system design
-- **Team Chat** — Real-time messaging with sender usernames and timestamps
 - **Live Presence** — Shows connected users with online count badge
 - **Interactive Avatar** — 3D-style robot companion that reacts to UI interactions
 - **Cinema Mode** — Immersive "Smoky Deep Gold Frost" glassmorphism UI for focused work
 
-### 🎨 Design System
+### 💬 Real-Time Chat System
+- **Dedicated Chat Workspace** — Global `/chats` page to manage all conversations
+- **Direct Messaging** — 1-on-1 private messaging via semantic user search
+- **Team Group Chats** — Auto-created chat rooms for full project teams
+- **Sender Identification** — Smart UI distinguishes own messages from team members with dynamic usernames
+- **Instant Sync** — Socket.IO integration for typing indicators and zero-latency message delivery
+- **Floating Chat Widget** — Global FAB for quick access to conversations across the platform
+
+### 🎨 Design System & Layout
 - **Dark Glassmorphism** — `#050505` background with `rgba` glass panels and gold `#D4AF37` accents
 - **Distorted Background** — Fixed background with collaboration images, noise overlay, and animated gold glows
+- **Responsive Fluid Containers** — Custom dynamic widths (`75%` to `98%`) replacing stock MUI Containers, perfectly proportioned to the TopBar for an expensive, spacious aesthetic.
 - **Consistent Theming** — Autocomplete dropdowns, inputs, and cards all match dark glass theme
 - **Animations** — Framer Motion page transitions, hover effects, and micro-interactions
 - **Responsive** — Mobile-friendly layouts with MUI Grid and Stack
@@ -215,6 +223,7 @@ frontend/
 | `/sessions` | List active coding sessions |
 | `/room/[roomId]` | Live collaboration (editor, whiteboard, chat) |
 | `/teams` | Teams listing |
+| `/chats` | Dedicated Real-time Chat Workspace |
 | `/invitations` | Invitation inbox |
 
 ---

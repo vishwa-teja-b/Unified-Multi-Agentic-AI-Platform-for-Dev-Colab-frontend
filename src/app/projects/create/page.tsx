@@ -31,8 +31,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { projectApi, ProjectCreateData } from '@/utils/projectApi';
 import { TopBar } from '@/components/shared/TopBar';
 import { DistortedBackground } from '@/components/shared/DistortedBackground';
-
-const GOLD = '#D4AF37';
+import { useThemeColors } from '@/context/ThemeContext';
 
 const steps = [
     { title: 'Concept', description: 'What are you building?' },
@@ -52,59 +51,45 @@ const COMMON_SKILLS = [
     'TensorFlow', 'PyTorch', 'LangChain', 'LangGraph', 'MySQL'
 ];
 
-/* ─── Shared dark-glass input styling ─── */
-const inputSx = {
-    '& .MuiOutlinedInput-root': {
-        borderRadius: 2,
-        bgcolor: 'rgba(255,255,255,0.03)',
-        '& fieldset': { borderColor: 'rgba(255,255,255,0.1)' },
-        '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
-        '&.Mui-focused fieldset': { borderColor: GOLD },
-    },
-    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.5)' },
-    '& .MuiInputBase-input': { color: 'white' },
-    '& .MuiInputBase-input::placeholder': { color: 'rgba(255,255,255,0.3)' },
-    '& .MuiSelect-icon': { color: 'rgba(255,255,255,0.4)' },
-};
-
-/* ─── Shared Autocomplete dropdown styling ─── */
-const autocompleteSx = {
-    '& .MuiAutocomplete-paper': {
-        bgcolor: '#1a1a1a',
-        border: '1px solid rgba(255,255,255,0.1)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-    },
-    '& .MuiAutocomplete-listbox': {
-        '& .MuiAutocomplete-option': {
-            color: 'rgba(255,255,255,0.8)',
-            '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' },
-            '&[aria-selected="true"]': { bgcolor: 'rgba(212,175,55,0.12)', color: GOLD },
-            '&[aria-selected="true"]:hover': { bgcolor: 'rgba(212,175,55,0.18)' },
-        },
-    },
-};
-
-const acSlotProps = {
-    paper: {
-        sx: {
-            bgcolor: '#1a1a1a',
-            border: '1px solid rgba(255,255,255,0.1)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-            '& .MuiAutocomplete-option': {
-                color: 'rgba(255,255,255,0.8)',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' },
-                '&[aria-selected="true"]': { bgcolor: 'rgba(212,175,55,0.12)', color: GOLD },
-                '&[aria-selected="true"]:hover': { bgcolor: 'rgba(212,175,55,0.18)' },
-            },
-            '& .MuiAutocomplete-noOptions': { color: 'rgba(255,255,255,0.4)' },
-        },
-    },
-};
-
 export default function CreateProjectPage() {
     const router = useRouter();
+    const c = useThemeColors();
+    const GOLD = c.gold;
     const [activeStep, setActiveStep] = useState(0);
     const [featureInput, setFeatureInput] = useState('');
+
+    /* ─── Shared dark-glass input styling ─── */
+    const inputSx = {
+        '& .MuiOutlinedInput-root': {
+            borderRadius: 2,
+            bgcolor: c.surface,
+            '& fieldset': { borderColor: c.borderLight },
+            '&:hover fieldset': { borderColor: c.border },
+            '&.Mui-focused fieldset': { borderColor: GOLD },
+        },
+        '& .MuiInputLabel-root': { color: c.textSecondary },
+        '& .MuiInputBase-input': { color: c.textPrimary },
+        '& .MuiInputBase-input::placeholder': { color: c.textMuted },
+        '& .MuiSelect-icon': { color: c.textSecondary },
+    };
+
+    /* ─── Shared Autocomplete dropdown styling ─── */
+    const acSlotProps = {
+        paper: {
+            sx: {
+                bgcolor: c.cardBg,
+                border: c.cardBorder,
+                boxShadow: c.shadowHover,
+                '& .MuiAutocomplete-option': {
+                    color: c.textPrimary,
+                    '&:hover': { bgcolor: c.surfaceHover },
+                    '&[aria-selected="true"]': { bgcolor: c.goldBg, color: GOLD },
+                    '&[aria-selected="true"]:hover': { bgcolor: c.goldMuted },
+                },
+                '& .MuiAutocomplete-noOptions': { color: c.textMuted },
+            },
+        },
+    };
 
     const { control, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<ProjectCreateData>({
         defaultValues: {
@@ -199,13 +184,14 @@ export default function CreateProjectPage() {
                                         MenuProps: {
                                             PaperProps: {
                                                 sx: {
-                                                    bgcolor: '#1a1a1a',
-                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    bgcolor: c.cardBg,
+                                                    border: c.cardBorder,
+                                                    boxShadow: c.shadowHover,
                                                     '& .MuiMenuItem-root': {
-                                                        color: 'rgba(255,255,255,0.8)',
-                                                        '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' },
-                                                        '&.Mui-selected': { bgcolor: 'rgba(212,175,55,0.12)', color: GOLD },
-                                                        '&.Mui-selected:hover': { bgcolor: 'rgba(212,175,55,0.18)' },
+                                                        color: c.textPrimary,
+                                                        '&:hover': { bgcolor: c.surfaceHover },
+                                                        '&.Mui-selected': { bgcolor: c.goldBg, color: GOLD },
+                                                        '&.Mui-selected:hover': { bgcolor: c.goldMuted },
                                                     },
                                                 },
                                             },
@@ -256,10 +242,10 @@ export default function CreateProjectPage() {
                                                 label={option}
                                                 sx={{
                                                     fontWeight: 500,
-                                                    bgcolor: 'rgba(212,175,55,0.15)',
+                                                    bgcolor: c.goldBg,
                                                     color: GOLD,
-                                                    border: `1px solid ${GOLD}40`,
-                                                    '& .MuiChip-deleteIcon': { color: `${GOLD}80` },
+                                                    border: `1px solid ${c.goldBorder}`,
+                                                    '& .MuiChip-deleteIcon': { color: c.textSecondary, '&:hover': { color: GOLD } },
                                                 }}
                                             />
                                         ))
@@ -269,7 +255,7 @@ export default function CreateProjectPage() {
                         />
 
                         <Box>
-                            <Typography variant="subtitle2" sx={{ mb: 2, color: 'rgba(255,255,255,0.5)' }}>
+                            <Typography variant="subtitle2" sx={{ mb: 2, color: c.textSecondary }}>
                                 Team Size
                             </Typography>
                             <Paper
@@ -277,8 +263,8 @@ export default function CreateProjectPage() {
                                 sx={{
                                     p: 3,
                                     borderRadius: 3,
-                                    bgcolor: 'rgba(255,255,255,0.03)',
-                                    border: '1px solid rgba(255,255,255,0.06)',
+                                    bgcolor: c.surface,
+                                    border: c.borderLight,
                                 }}
                             >
                                 <Controller
@@ -286,7 +272,7 @@ export default function CreateProjectPage() {
                                     control={control}
                                     render={({ field: { value, onChange } }) => (
                                         <>
-                                            <Typography variant="body2" sx={{ mb: 2, textAlign: 'center', color: 'white' }}>
+                                            <Typography variant="body2" sx={{ mb: 2, textAlign: 'center', color: c.textPrimary }}>
                                                 <strong>{value.min} - {value.max}</strong> members
                                             </Typography>
                                             <Slider
@@ -301,10 +287,10 @@ export default function CreateProjectPage() {
                                                     color: GOLD,
                                                     '& .MuiSlider-thumb': {
                                                         bgcolor: GOLD,
-                                                        '&:hover': { boxShadow: `0 0 0 8px rgba(212,175,55,0.16)` },
+                                                        '&:hover': { boxShadow: `0 0 0 8px ${c.goldBg}` },
                                                     },
                                                     '& .MuiSlider-track': { bgcolor: GOLD },
-                                                    '& .MuiSlider-rail': { bgcolor: 'rgba(255,255,255,0.1)' },
+                                                    '& .MuiSlider-rail': { bgcolor: c.borderLight },
                                                 }}
                                             />
                                         </>
@@ -318,7 +304,7 @@ export default function CreateProjectPage() {
                             control={control}
                             render={({ field }) => (
                                 <Box>
-                                    <Typography variant="subtitle2" sx={{ mb: 2, color: 'rgba(255,255,255,0.5)' }}>
+                                    <Typography variant="subtitle2" sx={{ mb: 2, color: c.textSecondary }}>
                                         Complexity
                                     </Typography>
                                     <Stack direction="row" spacing={1}>
@@ -332,10 +318,10 @@ export default function CreateProjectPage() {
                                                     fontWeight: 500,
                                                     flex: 1,
                                                     justifyContent: 'center',
-                                                    bgcolor: field.value === level ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.05)',
-                                                    color: field.value === level ? GOLD : 'rgba(255,255,255,0.6)',
-                                                    border: `1px solid ${field.value === level ? GOLD + '40' : 'rgba(255,255,255,0.1)'}`,
-                                                    '&:hover': { bgcolor: 'rgba(212,175,55,0.1)' },
+                                                    bgcolor: field.value === level ? c.goldBg : c.surfaceHover,
+                                                    color: field.value === level ? GOLD : c.textSecondary,
+                                                    border: `1px solid ${field.value === level ? c.goldBorder : c.borderLight}`,
+                                                    '&:hover': { bgcolor: c.goldMuted },
                                                 }}
                                             />
                                         ))}
@@ -367,7 +353,7 @@ export default function CreateProjectPage() {
                         />
 
                         <Box>
-                            <Typography variant="subtitle2" sx={{ mb: 2, color: 'rgba(255,255,255,0.5)' }}>
+                            <Typography variant="subtitle2" sx={{ mb: 2, color: c.textSecondary }}>
                                 Key Features
                             </Typography>
                             <TextField
@@ -386,7 +372,7 @@ export default function CreateProjectPage() {
                                                 sx={{
                                                     bgcolor: GOLD,
                                                     color: 'black',
-                                                    '&:hover': { bgcolor: '#c9a430' }
+                                                    '&:hover': { bgcolor: c.mode === 'dark' ? '#F0C040' : '#B8972E' }
                                                 }}
                                             >
                                                 <AddIcon fontSize="small" />
@@ -403,9 +389,9 @@ export default function CreateProjectPage() {
                                         onDelete={() => removeFeature(index)}
                                         variant="outlined"
                                         sx={{
-                                            color: 'rgba(255,255,255,0.7)',
-                                            borderColor: 'rgba(255,255,255,0.15)',
-                                            '& .MuiChip-deleteIcon': { color: 'rgba(255,255,255,0.3)' },
+                                            color: c.textPrimary,
+                                            borderColor: c.borderLight,
+                                            '& .MuiChip-deleteIcon': { color: c.textMuted, '&:hover': { color: c.textSecondary } },
                                         }}
                                     />
                                 ))}
@@ -420,7 +406,7 @@ export default function CreateProjectPage() {
     };
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: '#050505', color: 'white', position: 'relative' }}>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'transparent', color: c.textPrimary, position: 'relative' }}>
             <DistortedBackground />
             <TopBar />
 
@@ -432,11 +418,11 @@ export default function CreateProjectPage() {
                             component={Link}
                             href="/projects"
                             startIcon={<ArrowBack />}
-                            sx={{ color: 'rgba(255,255,255,0.6)', textTransform: 'none', '&:hover': { color: 'white' } }}
+                            sx={{ color: c.textSecondary, textTransform: 'none', '&:hover': { color: c.textPrimary } }}
                         >
                             Back to Projects
                         </Button>
-                        <IconButton onClick={() => router.push('/projects')} sx={{ color: 'rgba(255,255,255,0.4)' }}>
+                        <IconButton onClick={() => router.push('/projects')} sx={{ color: c.textMuted }}>
                             <Close />
                         </IconButton>
                     </Stack>
@@ -446,10 +432,10 @@ export default function CreateProjectPage() {
                         sx={{
                             p: { xs: 3, md: 5 },
                             borderRadius: 4,
-                            bgcolor: 'rgba(255,255,255,0.02)',
-                            border: '1px solid rgba(255,255,255,0.06)',
+                            bgcolor: c.cardBg,
+                            border: c.cardBorder,
                             backdropFilter: 'blur(20px)',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                            boxShadow: c.shadowHover,
                         }}
                     >
                         {/* Title */}
@@ -464,7 +450,7 @@ export default function CreateProjectPage() {
                             }}>
                                 Create New Project
                             </Typography>
-                            <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                            <Typography variant="body1" sx={{ color: c.textSecondary }}>
                                 {steps[activeStep].description}
                             </Typography>
                         </Box>
@@ -472,10 +458,10 @@ export default function CreateProjectPage() {
                         {/* Progress */}
                         <Box sx={{ mb: 5 }}>
                             <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
-                                <Typography variant="body2" fontWeight="600" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                                <Typography variant="body2" fontWeight="600" sx={{ color: c.textPrimary }}>
                                     Step {activeStep + 1} of {steps.length}
                                 </Typography>
-                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)' }}>
+                                <Typography variant="body2" sx={{ color: c.textMuted }}>
                                     {steps[activeStep].title}
                                 </Typography>
                             </Stack>
@@ -485,7 +471,7 @@ export default function CreateProjectPage() {
                                 sx={{
                                     height: 6,
                                     borderRadius: 4,
-                                    bgcolor: 'rgba(255,255,255,0.06)',
+                                    bgcolor: c.surfaceHover,
                                     '& .MuiLinearProgress-bar': {
                                         borderRadius: 4,
                                         background: `linear-gradient(90deg, ${GOLD}, #F0C040)`,
@@ -503,7 +489,7 @@ export default function CreateProjectPage() {
                                         width: 32,
                                         height: 4,
                                         borderRadius: 2,
-                                        bgcolor: i <= activeStep ? GOLD : 'rgba(255,255,255,0.1)',
+                                        bgcolor: i <= activeStep ? GOLD : c.borderLight,
                                         transition: 'background-color 0.3s',
                                     }}
                                 />
@@ -533,10 +519,10 @@ export default function CreateProjectPage() {
                                     onClick={() => setActiveStep(prev => prev - 1)}
                                     startIcon={<ArrowBack />}
                                     sx={{
-                                        color: 'rgba(255,255,255,0.5)',
+                                        color: c.textSecondary,
                                         textTransform: 'none',
-                                        '&:hover': { color: 'white' },
-                                        '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)' },
+                                        '&:hover': { color: c.textPrimary },
+                                        '&.Mui-disabled': { color: c.textMuted },
                                     }}
                                 >
                                     Back
@@ -557,8 +543,8 @@ export default function CreateProjectPage() {
                                             textTransform: 'none',
                                             fontWeight: 700,
                                             px: 4,
-                                            boxShadow: `0 3px 12px rgba(212,175,55,0.3)`,
-                                            '&:hover': { background: `linear-gradient(45deg, #c9a430 30%, ${GOLD} 90%)` },
+                                            boxShadow: `0 3px 12px ${c.goldBg}`,
+                                            '&:hover': { background: `linear-gradient(45deg, #F0C040 30%, ${GOLD} 90%)` },
                                         }}
                                     >
                                         {isSubmitting ? 'Creating...' : 'Create Project'}
@@ -576,8 +562,8 @@ export default function CreateProjectPage() {
                                             textTransform: 'none',
                                             fontWeight: 700,
                                             px: 4,
-                                            boxShadow: `0 3px 12px rgba(212,175,55,0.3)`,
-                                            '&:hover': { background: `linear-gradient(45deg, #c9a430 30%, ${GOLD} 90%)` },
+                                            boxShadow: `0 3px 12px ${c.goldBg}`,
+                                            '&:hover': { background: `linear-gradient(45deg, #F0C040 30%, ${GOLD} 90%)` },
                                         }}
                                     >
                                         Continue

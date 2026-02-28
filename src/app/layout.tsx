@@ -7,6 +7,7 @@ import "@fontsource/space-grotesk/600.css";
 import "@fontsource/space-grotesk/700.css";
 import "./globals.css";
 import ThemeContextprovider from "@/context/ThemeContext";
+import { ChatWidget } from "@/components/chat/ChatWidget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,6 +34,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeContextprovider>
           {children}
+          <ChatWidget />
         </ThemeContextprovider>
       </body>
     </html>

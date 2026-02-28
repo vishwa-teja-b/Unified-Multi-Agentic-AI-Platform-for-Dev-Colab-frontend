@@ -3,13 +3,13 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { motion } from 'framer-motion';
-
-const GOLD = '#D4AF37';
-const DARK_BG = '#050505';
+import { useThemeColors } from '@/context/ThemeContext';
 
 export const DistortedBackground = () => {
+    const c = useThemeColors();
+
     return (
-        <Box sx={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', bgcolor: DARK_BG }}>
+        <Box sx={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', bgcolor: c.bg, transition: 'background-color 0.3s ease' }}>
             {/* 4K Background Image - Team Collaboration */}
             <Box sx={{
                 position: 'absolute',
@@ -18,7 +18,8 @@ export const DistortedBackground = () => {
                 backgroundImage: 'url("https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=3840&auto=format&fit=crop")',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                filter: 'brightness(0.4) contrast(1.1)', // Removed grayscale, darkened for text readability
+                filter: 'brightness(0.4) contrast(1.1)',
+                transition: 'all 0.3s ease'
             }} />
 
             {/* Noise Overlay */}
@@ -45,7 +46,7 @@ export const DistortedBackground = () => {
                     right: '-10%',
                     width: '60vw',
                     height: '60vw',
-                    background: `radial-gradient(circle, ${GOLD}10 0%, transparent 70%)`,
+                    background: `radial-gradient(circle, ${c.gold}15 0%, transparent 70%)`,
                     filter: 'blur(100px)',
                     borderRadius: '40%',
                 }}

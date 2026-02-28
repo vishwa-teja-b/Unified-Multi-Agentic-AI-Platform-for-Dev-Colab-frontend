@@ -9,45 +9,104 @@ import { CacheProvider } from '@emotion/react';
 
 type ThemeMode = 'light' | 'dark';
 
+// ── Semantic Color Tokens ──────────────────────────────────────────────────────
+export interface ThemeColors {
+    mode: ThemeMode;
+    // Backgrounds
+    bg: string;
+    surface: string;
+    surfaceHover: string;
+    glassBg: string;
+    // Text
+    textPrimary: string;
+    textSecondary: string;
+    textMuted: string;
+    // Accent
+    gold: string;
+    goldMuted: string;
+    goldBorder: string;
+    goldBg: string;
+    // Borders & Dividers
+    divider: string;
+    border: string;
+    borderLight: string;
+    // Cards
+    cardBg: string;
+    cardBorder: string;
+    cardHoverBorder: string;
+    // Inputs
+    inputBg: string;
+    inputBorder: string;
+    inputFocusBorder: string;
+    // Shadows
+    shadow: string;
+    shadowHover: string;
+    // Misc
+    overlay: string;
+    skeletonBg: string;
+}
+
+const DARK_COLORS: ThemeColors = {
+    mode: 'dark',
+    bg: '#050505',
+    surface: 'rgba(255,255,255,0.03)',
+    surfaceHover: 'rgba(255,255,255,0.05)',
+    glassBg: 'rgba(0,0,0,0.6)',
+    textPrimary: '#FFFFFF',
+    textSecondary: 'rgba(255,255,255,0.5)',
+    textMuted: 'rgba(255,255,255,0.3)',
+    gold: '#D4AF37',
+    goldMuted: 'rgba(212,175,55,0.15)',
+    goldBorder: 'rgba(212,175,55,0.3)',
+    goldBg: 'rgba(212,175,55,0.08)',
+    divider: 'rgba(255,255,255,0.1)',
+    border: 'rgba(255,255,255,0.06)',
+    borderLight: 'rgba(255,255,255,0.03)',
+    cardBg: 'rgba(255,255,255,0.02)',
+    cardBorder: 'rgba(255,255,255,0.05)',
+    cardHoverBorder: 'rgba(212,175,55,0.3)',
+    inputBg: 'rgba(255,255,255,0.03)',
+    inputBorder: 'rgba(255,255,255,0.1)',
+    inputFocusBorder: '#D4AF37',
+    shadow: 'none',
+    shadowHover: '0 0 30px rgba(212,175,55,0.08)',
+    overlay: 'rgba(0,0,0,0.5)',
+    skeletonBg: 'rgba(255,255,255,0.05)',
+};
+
+
+
+// ── Context ────────────────────────────────────────────────────────────────────
 interface ThemeContextType {
     mode: ThemeMode;
-    toggleColorMode: () => void;
+    colors: ThemeColors;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-    mode: 'light',
-    toggleColorMode: () => { },
+    mode: 'dark',
+    colors: DARK_COLORS,
 });
 
 export const useThemeContext = () => useContext(ThemeContext);
+export const useThemeColors = (): ThemeColors => useContext(ThemeContext).colors;
 
-// Implementation of Emotion Cache for Next.js App Router
-export default function ThemeContextprovider({ children }: { children: React.ReactNode }) {
-    const [mode, setMode] = useState<ThemeMode>('light');
+// ── Provider ───────────────────────────────────────────────────────────────────
+export default function ThemeContextProvider({ children }: { children: React.ReactNode }) {
+    // Mode is effectively fixed as 'dark'
+    const mode: ThemeMode = 'dark';
+    const colors = DARK_COLORS;
 
-    // Load from local storage on mount
+    // Set data-theme on html element for CSS
     useEffect(() => {
-        const savedMode = localStorage.getItem('themeMode') as ThemeMode;
-        if (savedMode) {
-            setMode(savedMode);
-        } else {
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            setMode(systemPrefersDark ? 'dark' : 'light');
-        }
-    }, []);
+        document.documentElement.setAttribute('data-theme', mode);
+    }, [mode]);
 
-    const colorMode = useMemo(
+    const contextValue = useMemo(
         () => ({
             mode,
-            toggleColorMode: () => {
-                setMode((prevMode) => {
-                    const newMode = prevMode === 'light' ? 'dark' : 'light';
-                    localStorage.setItem('themeMode', newMode);
-                    return newMode;
-                });
-            },
+            colors,
         }),
-        [mode]
+        [mode, colors]
     );
 
     const theme = useMemo(
@@ -55,26 +114,14 @@ export default function ThemeContextprovider({ children }: { children: React.Rea
             createTheme({
                 palette: {
                     mode,
-                    ...(mode === 'light'
-                        ? {
-                            // Light Mode (Pearl White & Charcoal)
-                            primary: { main: '#2F2F33' }, // Charcoal Stone
-                            secondary: { main: '#F5F6F7' }, // Pearl White
-                            background: { default: '#F5F6F7', paper: '#FFFFFF' },
-                            text: { primary: '#2F2F33', secondary: 'rgba(47, 47, 51, 0.7)' },
-                            divider: 'rgba(47, 47, 51, 0.12)',
-                        }
-                        : {
-                            // Dark Mode (Charcoal Stone & Pearl White)
-                            primary: { main: '#F5F6F7' },
-                            secondary: { main: '#2F2F33' },
-                            background: { default: '#2F2F33', paper: '#3A3A3F' }, // Charcoal Stone & slightly lighter
-                            text: { primary: '#F5F6F7', secondary: 'rgba(245, 246, 247, 0.7)' },
-                            divider: 'rgba(245, 246, 247, 0.1)',
-                        }),
+                    primary: { main: '#D4AF37' },
+                    secondary: { main: 'rgba(255,255,255,0.5)' },
+                    background: { default: '#050505', paper: '#0A0A0A' },
+                    text: { primary: '#FFFFFF', secondary: 'rgba(255,255,255,0.5)' },
+                    divider: 'rgba(255,255,255,0.1)',
                 },
                 typography: {
-                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                    fontFamily: '"Space Grotesk", "Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                     h1: { fontSize: '3.5rem', fontWeight: 700, letterSpacing: '-0.02em' },
                     h2: { fontSize: '2.75rem', fontWeight: 600, letterSpacing: '-0.01em' },
                     h3: { fontSize: '2.25rem', fontWeight: 600 },
@@ -82,18 +129,7 @@ export default function ThemeContextprovider({ children }: { children: React.Rea
                     body1: { fontSize: '1rem', lineHeight: 1.7 },
                     body2: { fontSize: '0.875rem', lineHeight: 1.6 },
                 },
-                shape: {
-                    borderRadius: 12,
-                },
-                shadows: [
-                    'none',
-                    '0px 2px 8px rgba(47, 47, 51, 0.04)',
-                    '0px 4px 12px rgba(47, 47, 51, 0.06)',
-                    '0px 6px 16px rgba(47, 47, 51, 0.08)',
-                    '0px 8px 24px rgba(47, 47, 51, 0.1)',
-                    '0px 12px 32px rgba(47, 47, 51, 0.12)',
-                    'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none'
-                ],
+                shape: { borderRadius: 12 },
                 components: {
                     MuiButton: {
                         styleOverrides: {
@@ -101,69 +137,6 @@ export default function ThemeContextprovider({ children }: { children: React.Rea
                                 textTransform: 'none',
                                 fontWeight: 500,
                                 borderRadius: 8,
-                                padding: '10px 24px',
-                                fontSize: '0.9375rem',
-                            },
-                            contained: {
-                                boxShadow: 'none',
-                                '&:hover': {
-                                    boxShadow: '0px 4px 12px rgba(47, 47, 51, 0.15)',
-                                },
-                            },
-                        },
-                    },
-                    MuiCard: {
-                        styleOverrides: {
-                            root: {
-                                borderRadius: 16,
-                                boxShadow: mode === 'light' ? '0px 2px 8px rgba(47, 47, 51, 0.04)' : 'none',
-                                border: mode === 'light' ? '1px solid rgba(47, 47, 51, 0.08)' : '1px solid rgba(245, 246, 247, 0.1)',
-                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                '&:hover': {
-                                    boxShadow: mode === 'light' ? '0px 8px 24px rgba(47, 47, 51, 0.1)' : 'none',
-                                    transform: 'translateY(-2px)',
-                                },
-                            },
-                        },
-                    },
-                    MuiAppBar: {
-                        styleOverrides: {
-                            root: {
-                                backgroundColor: mode === 'light' ? '#FFFFFF' : '#3A3A3F',
-                                color: mode === 'light' ? '#2F2F33' : '#F5F6F7',
-                                boxShadow: '0px 1px 3px rgba(47, 47, 51, 0.06)',
-                            },
-                        },
-                    },
-                    MuiTextField: {
-                        styleOverrides: {
-                            root: {
-                                '& .MuiOutlinedInput-root': {
-                                    backgroundColor: mode === 'light' ? '#FFFFFF' : '#2F2F33',
-                                    borderRadius: 8,
-                                    '& fieldset': {
-                                        borderColor: mode === 'light' ? 'rgba(47, 47, 51, 0.23)' : 'rgba(245, 246, 247, 0.23)',
-                                    },
-                                    '&:hover fieldset': {
-                                        borderColor: mode === 'light' ? '#2F2F33' : '#F5F6F7',
-                                    },
-                                    '&.Mui-focused fieldset': {
-                                        borderColor: mode === 'light' ? '#2F2F33' : '#F5F6F7',
-                                        borderWidth: 2,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                    MuiChip: {
-                        styleOverrides: {
-                            root: {
-                                borderRadius: 6,
-                                fontWeight: 500,
-                            },
-                            filled: {
-                                backgroundColor: mode === 'light' ? '#2F2F33' : '#F5F6F7',
-                                color: mode === 'light' ? '#F5F6F7' : '#2F2F33',
                             },
                         },
                     },
@@ -172,9 +145,9 @@ export default function ThemeContextprovider({ children }: { children: React.Rea
         [mode]
     );
 
-    // Emotion Cache Logic
+    // ── Emotion Cache Logic ────────────────────────────────────────────────────
     const [{ cache, flush }] = useState(() => {
-        const cache = createCache({ key: 'css-global' }); // Ensure unique key
+        const cache = createCache({ key: 'css-global' });
         cache.compat = true;
         const prevInsert = cache.insert;
         let inserted: string[] = [];
@@ -215,7 +188,7 @@ export default function ThemeContextprovider({ children }: { children: React.Rea
 
     return (
         <CacheProvider value={cache}>
-            <ThemeContext.Provider value={colorMode}>
+            <ThemeContext.Provider value={contextValue}>
                 <MuiThemeProvider theme={theme}>
                     <CssBaseline />
                     {children}

@@ -42,13 +42,15 @@ import { motion } from 'framer-motion';
 import { projectApi, ProjectResponse, InvitationResponse } from '@/utils/projectApi';
 import { TopBar } from '@/components/shared/TopBar';
 import { DistortedBackground } from '@/components/shared/DistortedBackground';
+import { useThemeColors } from '@/context/ThemeContext';
 
-const GOLD = '#D4AF37';
 const MotionPaper = motion(Paper);
 
 function ProjectsContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const c = useThemeColors();
+    const GOLD = c.gold;
     const [myProjects, setMyProjects] = useState<ProjectResponse[]>([]);
     const [allProjects, setAllProjects] = useState<ProjectResponse[]>([]);
     const [joinRequests, setJoinRequests] = useState<InvitationResponse[]>([]);
@@ -156,7 +158,7 @@ function ProjectsContent() {
             case 'Open': return { bg: 'rgba(21, 101, 192, 0.2)', text: '#42a5f5' };
             case 'In Progress': return { bg: 'rgba(230, 81, 0, 0.2)', text: '#ff9800' };
             case 'Completed': return { bg: 'rgba(46, 125, 50, 0.2)', text: '#66bb6a' };
-            default: return { bg: 'rgba(255, 255, 255, 0.1)', text: '#bdbdbd' };
+            default: return { bg: c.borderLight, text: c.textSecondary };
         }
     };
 
@@ -165,7 +167,7 @@ function ProjectsContent() {
             case 'Easy': return { bg: 'rgba(46, 125, 50, 0.2)', text: '#66bb6a' };
             case 'Medium': return { bg: 'rgba(230, 81, 0, 0.2)', text: '#ff9800' };
             case 'Hard': return { bg: 'rgba(198, 40, 40, 0.2)', text: '#ef5350' };
-            default: return { bg: 'rgba(255, 255, 255, 0.1)', text: '#bdbdbd' };
+            default: return { bg: c.borderLight, text: c.textSecondary };
         }
     };
 
@@ -186,18 +188,18 @@ function ProjectsContent() {
                 sx={{
                     p: 3,
                     borderRadius: 4,
-                    bgcolor: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.05)',
+                    bgcolor: c.cardBg,
+                    border: c.cardBorder,
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
                     minHeight: 320,
                     transition: 'all 0.2s ease',
                     backdropFilter: 'blur(10px)',
+                    boxShadow: c.shadow,
                     '&:hover': {
-                        borderColor: GOLD,
-                        bgcolor: 'rgba(255,255,255,0.05)',
-                        boxShadow: `0 0 20px rgba(212, 175, 55, 0.1)`,
+                        borderColor: c.gold,
+                        boxShadow: c.shadowHover,
                     }
                 }}
             >
@@ -207,7 +209,7 @@ function ProjectsContent() {
                         <Chip
                             label={project.category}
                             size="small"
-                            sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', fontWeight: 500, fontSize: '0.75rem' }}
+                            sx={{ bgcolor: c.borderLight, color: c.textSecondary, fontWeight: 500, fontSize: '0.75rem' }}
                         />
                         <Chip
                             label={project.status}
@@ -223,7 +225,7 @@ function ProjectsContent() {
                     <IconButton
                         size="small"
                         onClick={(e) => { e.stopPropagation(); }}
-                        sx={{ color: 'rgba(255,255,255,0.5)', '&:hover': { color: 'white' } }}
+                        sx={{ color: c.textMuted, '&:hover': { color: c.textPrimary } }}
                     >
                         <MoreHoriz fontSize="small" />
                     </IconButton>
@@ -235,7 +237,7 @@ function ProjectsContent() {
                     fontWeight="700"
                     sx={{
                         mb: 1,
-                        color: 'white',
+                        color: c.textPrimary,
                         fontFamily: 'Space Grotesk',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -250,7 +252,7 @@ function ProjectsContent() {
                     variant="body2"
                     sx={{
                         mb: 2,
-                        color: 'rgba(255,255,255,0.6)',
+                        color: c.textSecondary,
                         lineHeight: 1.6,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -265,13 +267,13 @@ function ProjectsContent() {
 
                 {/* Meta */}
                 <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-                    <Stack direction="row" alignItems="center" spacing={0.5} sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                    <Stack direction="row" alignItems="center" spacing={0.5} sx={{ color: c.textSecondary }}>
                         <Group sx={{ fontSize: 16 }} />
                         <Typography variant="caption" fontWeight="500">
                             {project.team_size.min}-{project.team_size.max}
                         </Typography>
                     </Stack>
-                    <Stack direction="row" alignItems="center" spacing={0.5} sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                    <Stack direction="row" alignItems="center" spacing={0.5} sx={{ color: c.textSecondary }}>
                         <AccessTime sx={{ fontSize: 16 }} />
                         <Typography variant="caption" fontWeight="500">
                             {project.estimated_duration}
@@ -287,14 +289,14 @@ function ProjectsContent() {
                             label={skill}
                             size="small"
                             variant="outlined"
-                            sx={{ fontSize: '0.7rem', height: 24, color: 'rgba(255,255,255,0.7)', borderColor: 'rgba(255,255,255,0.2)' }}
+                            sx={{ fontSize: '0.7rem', height: 24, color: c.textSecondary, borderColor: c.borderLight }}
                         />
                     ))}
                     {project.required_skills.length > 4 && (
                         <Chip
                             label={`+${project.required_skills.length - 4}`}
                             size="small"
-                            sx={{ fontSize: '0.7rem', height: 24, bgcolor: 'rgba(255,255,255,0.1)', color: 'white' }}
+                            sx={{ fontSize: '0.7rem', height: 24, bgcolor: c.borderLight, color: c.textSecondary }}
                         />
                     )}
                 </Box>
@@ -308,7 +310,7 @@ function ProjectsContent() {
                             display: 'flex',
                             alignItems: 'center',
                             gap: 0.5,
-                            color: GOLD,
+                            color: c.gold,
                             fontFamily: 'Space Grotesk',
                             '&:hover': { color: '#F0C040' },
                         }}
@@ -332,32 +334,33 @@ function ProjectsContent() {
             sx={{
                 p: 3,
                 borderRadius: 4,
-                bgcolor: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.05)',
+                bgcolor: c.cardBg,
+                border: c.cardBorder,
+                boxShadow: c.shadow,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 '&:hover': {
-                    borderColor: GOLD,
-                    boxShadow: `0 4px 20px rgba(212, 175, 55, 0.1)`,
+                    borderColor: c.gold,
+                    boxShadow: c.shadowHover,
                 }
             }}
         >
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                 <Box sx={{ flex: 1 }}>
                     <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                        <PersonAdd sx={{ fontSize: 18, color: GOLD }} />
-                        <Typography variant="subtitle1" fontWeight="700" color="white" fontFamily="Space Grotesk">
+                        <PersonAdd sx={{ fontSize: 18, color: c.gold }} />
+                        <Typography variant="subtitle1" fontWeight="700" color={c.textPrimary} fontFamily="Space Grotesk">
                             {req.project_title}
                         </Typography>
                     </Stack>
-                    <Typography variant="body2" sx={{ mb: 1, color: 'rgba(255,255,255,0.7)' }}>
+                    <Typography variant="body2" sx={{ mb: 1, color: c.textSecondary }}>
                         <strong>Role:</strong> {req.role}
                     </Typography>
                     {req.message && (
                         <Typography
                             variant="body2"
                             sx={{
-                                color: 'rgba(255,255,255,0.5)',
+                                color: c.textMuted,
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                                 display: '-webkit-box',
@@ -368,7 +371,7 @@ function ProjectsContent() {
                             "{req.message}"
                         </Typography>
                     )}
-                    <Typography variant="caption" sx={{ mt: 1, display: 'block', color: 'rgba(255,255,255,0.3)' }}>
+                    <Typography variant="caption" sx={{ mt: 1, display: 'block', color: c.textMuted }}>
                         {new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </Typography>
                 </Box>
@@ -394,12 +397,12 @@ function ProjectsContent() {
     const currentProjects = activeTab === 0 ? filteredMyProjects : exploreProjects;
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: '#050505', color: 'white', overflowX: 'hidden', position: 'relative' }}>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'transparent', color: c.textPrimary, overflowX: 'hidden', position: 'relative' }}>
             <DistortedBackground />
             <TopBar />
 
             <Box sx={{ pt: '100px', position: 'relative', zIndex: 10 }}>
-                <Container maxWidth="xl">
+                <Box sx={{ width: { xs: '98%', sm: '90%', md: '85%', lg: '75%' }, maxWidth: '1300px', mx: 'auto' }}>
                     {/* Header */}
                     <Stack
                         direction={{ xs: 'column', sm: 'row' }}
@@ -409,10 +412,10 @@ function ProjectsContent() {
                         sx={{ mb: 4 }}
                     >
                         <Box>
-                            <Typography variant="h3" fontWeight="800" sx={{ letterSpacing: '-0.02em', mb: 0.5, fontFamily: 'Space Grotesk', color: 'white' }}>
+                            <Typography variant="h3" fontWeight="800" sx={{ letterSpacing: '-0.02em', mb: 0.5, fontFamily: 'Space Grotesk', color: c.textPrimary }}>
                                 Projects
                             </Typography>
-                            <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                            <Typography variant="body1" sx={{ color: c.textSecondary }}>
                                 {activeTab === 0
                                     ? 'Manage your projects and track progress'
                                     : activeTab === 1
@@ -425,10 +428,10 @@ function ProjectsContent() {
                                         label="All"
                                         onClick={() => setFilterCreated(false)}
                                         sx={{
-                                            bgcolor: !filterCreated ? GOLD : 'rgba(255,255,255,0.1)',
-                                            color: !filterCreated ? 'black' : 'white',
+                                            bgcolor: !filterCreated ? GOLD : c.borderLight,
+                                            color: !filterCreated ? 'black' : c.textPrimary,
                                             fontWeight: 600,
-                                            '&:hover': { bgcolor: !filterCreated ? '#F0C040' : 'rgba(255,255,255,0.2)' }
+                                            '&:hover': { bgcolor: !filterCreated ? '#F0C040' : c.border }
                                         }}
                                         size="small"
                                         clickable
@@ -437,10 +440,10 @@ function ProjectsContent() {
                                         label="Created by Me"
                                         onClick={() => setFilterCreated(true)}
                                         sx={{
-                                            bgcolor: filterCreated ? GOLD : 'rgba(255,255,255,0.1)',
-                                            color: filterCreated ? 'black' : 'white',
+                                            bgcolor: filterCreated ? GOLD : c.borderLight,
+                                            color: filterCreated ? 'black' : c.textPrimary,
                                             fontWeight: 600,
-                                            '&:hover': { bgcolor: filterCreated ? '#F0C040' : 'rgba(255,255,255,0.2)' }
+                                            '&:hover': { bgcolor: filterCreated ? '#F0C040' : c.border }
                                         }}
                                         size="small"
                                         clickable
@@ -480,7 +483,7 @@ function ProjectsContent() {
                                     fontWeight: 600,
                                     fontSize: '0.95rem',
                                     minHeight: 48,
-                                    color: 'rgba(255,255,255,0.5)',
+                                    color: c.textSecondary,
                                     fontFamily: 'Space Grotesk',
                                     '&.Mui-selected': { color: GOLD },
                                 },
@@ -521,8 +524,8 @@ function ProjectsContent() {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 1.5,
-                                bgcolor: 'rgba(255,255,255,0.04)',
-                                border: '1px solid rgba(255,255,255,0.08)',
+                                bgcolor: c.inputBg,
+                                border: c.inputBorder,
                                 borderRadius: 3,
                                 px: 2,
                                 py: 0.5,
@@ -534,18 +537,18 @@ function ProjectsContent() {
                                 },
                             }}
                         >
-                            <SearchIcon sx={{ color: 'rgba(255,255,255,0.4)', fontSize: 22 }} />
+                            <SearchIcon sx={{ color: c.textMuted, fontSize: 22 }} />
                             <InputBase
                                 placeholder="Search projects semantically — e.g. 'chat app with AI'"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 fullWidth
                                 sx={{
-                                    color: 'white',
+                                    color: c.textPrimary,
                                     fontFamily: 'Space Grotesk',
                                     fontSize: '0.95rem',
                                     '& input::placeholder': {
-                                        color: 'rgba(255,255,255,0.35)',
+                                        color: c.textMuted,
                                         opacity: 1,
                                     },
                                 }}
@@ -558,7 +561,7 @@ function ProjectsContent() {
                     {loading ? (
                         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 3 }}>
                             {[1, 2, 3].map((n) => (
-                                <Skeleton key={n} variant="rectangular" height={320} sx={{ borderRadius: 4, bgcolor: 'rgba(255,255,255,0.05)' }} />
+                                <Skeleton key={n} variant="rectangular" height={320} sx={{ borderRadius: 4, bgcolor: c.skeletonBg }} />
                             ))}
                         </Box>
                     ) : activeTab === 2 ? (
@@ -570,15 +573,15 @@ function ProjectsContent() {
                                     p: 8,
                                     borderRadius: 4,
                                     textAlign: 'center',
-                                    bgcolor: 'rgba(255,255,255,0.02)',
-                                    border: '1px solid rgba(255,255,255,0.05)',
+                                    bgcolor: c.cardBg,
+                                    border: c.cardBorder,
                                 }}
                             >
-                                <Inbox sx={{ fontSize: 48, color: 'rgba(255,255,255,0.2)', mb: 2 }} />
-                                <Typography variant="h6" fontWeight="600" sx={{ mb: 1, color: 'white', fontFamily: 'Space Grotesk' }}>
+                                <Inbox sx={{ fontSize: 48, color: c.textMuted, mb: 2 }} />
+                                <Typography variant="h6" fontWeight="600" sx={{ mb: 1, color: c.textPrimary, fontFamily: 'Space Grotesk' }}>
                                     No pending requests
                                 </Typography>
-                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                                <Typography variant="body2" sx={{ color: c.textSecondary }}>
                                     When someone requests to join your project, it will appear here.
                                 </Typography>
                             </Paper>
@@ -594,14 +597,14 @@ function ProjectsContent() {
                                 p: 8,
                                 borderRadius: 4,
                                 textAlign: 'center',
-                                bgcolor: 'rgba(255,255,255,0.02)',
-                                border: '1px solid rgba(255,255,255,0.05)',
+                                bgcolor: c.cardBg,
+                                border: c.cardBorder,
                             }}
                         >
-                            <Typography variant="h6" fontWeight="600" sx={{ mb: 1, color: 'white', fontFamily: 'Space Grotesk' }}>
+                            <Typography variant="h6" fontWeight="600" sx={{ mb: 1, color: c.textPrimary, fontFamily: 'Space Grotesk' }}>
                                 {activeTab === 0 ? 'No projects yet' : 'No projects to explore'}
                             </Typography>
-                            <Typography variant="body2" sx={{ mb: 3, color: 'rgba(255,255,255,0.5)' }}>
+                            <Typography variant="body2" sx={{ mb: 3, color: c.textSecondary }}>
                                 {activeTab === 0
                                     ? 'Create your first project to get started'
                                     : 'Check back later for new projects from other users'
@@ -631,7 +634,7 @@ function ProjectsContent() {
                             {currentProjects.map((project, index) => renderProjectCard(project, index))}
                         </Box>
                     )}
-                </Container>
+                </Box>
             </Box>
 
             {/* Request Detail Modal */}
@@ -640,7 +643,7 @@ function ProjectsContent() {
                 onClose={() => setSelectedRequest(null)}
                 maxWidth="sm"
                 fullWidth
-                PaperProps={{ sx: { borderRadius: 3, bgcolor: '#111', color: 'white', border: '1px solid rgba(255,255,255,0.1)' } }}
+                PaperProps={{ sx: { borderRadius: 3, bgcolor: c.cardBg, color: c.textPrimary, border: c.cardBorder, boxShadow: c.shadowHover } }}
             >
                 {selectedRequest && (
                     <>
@@ -650,22 +653,22 @@ function ProjectsContent() {
                         <DialogContent>
                             <Stack spacing={2.5} sx={{ mt: 1 }}>
                                 <Box>
-                                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'rgba(255,255,255,0.5)' }}>
+                                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: c.textSecondary }}>
                                         Project
                                     </Typography>
-                                    <Typography variant="body1" fontWeight="600" color="white">
+                                    <Typography variant="body1" fontWeight="600" color={c.textPrimary}>
                                         {selectedRequest.project_title}
                                     </Typography>
                                 </Box>
                                 <Box>
-                                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'rgba(255,255,255,0.5)' }}>
+                                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: c.textSecondary }}>
                                         Requested Role
                                     </Typography>
-                                    <Chip label={selectedRequest.role} size="small" sx={{ bgcolor: 'rgba(212, 175, 55, 0.2)', color: GOLD, fontWeight: 600 }} />
+                                    <Chip label={selectedRequest.role} size="small" sx={{ bgcolor: c.goldBg, color: GOLD, fontWeight: 600 }} />
                                 </Box>
                                 {selectedRequest.message && (
                                     <Box>
-                                        <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'rgba(255,255,255,0.5)' }}>
+                                        <Typography variant="subtitle2" sx={{ mb: 0.5, color: c.textSecondary }}>
                                             Message
                                         </Typography>
                                         <Paper
@@ -673,20 +676,20 @@ function ProjectsContent() {
                                             sx={{
                                                 p: 2,
                                                 borderRadius: 2,
-                                                bgcolor: 'rgba(255,255,255,0.05)',
+                                                bgcolor: c.borderLight,
                                             }}
                                         >
-                                            <Typography variant="body2" sx={{ lineHeight: 1.6, fontStyle: 'italic', color: 'rgba(255,255,255,0.8)' }}>
+                                            <Typography variant="body2" sx={{ lineHeight: 1.6, fontStyle: 'italic', color: c.textSecondary }}>
                                                 "{selectedRequest.message}"
                                             </Typography>
                                         </Paper>
                                     </Box>
                                 )}
                                 <Box>
-                                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'rgba(255,255,255,0.5)' }}>
+                                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: c.textSecondary }}>
                                         Requested On
                                     </Typography>
-                                    <Typography variant="body2" color="rgba(255,255,255,0.7)">
+                                    <Typography variant="body2" color={c.textSecondary}>
                                         {new Date(selectedRequest.created_at).toLocaleDateString('en-US', {
                                             year: 'numeric',
                                             month: 'long',
@@ -699,7 +702,7 @@ function ProjectsContent() {
                         <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
                             <Button
                                 onClick={() => setSelectedRequest(null)}
-                                sx={{ textTransform: 'none', color: 'rgba(255,255,255,0.5)' }}
+                                sx={{ textTransform: 'none', color: c.textSecondary }}
                             >
                                 Close
                             </Button>
@@ -757,7 +760,7 @@ function ProjectsContent() {
 export default function ProjectsPage() {
     return (
         <React.Suspense fallback={
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#050505' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: 'transparent' }}>
                 <CircularProgress sx={{ color: '#D4AF37' }} />
             </Box>
         }>

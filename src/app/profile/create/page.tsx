@@ -33,8 +33,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { profileApi, ProfileData } from '@/utils/profileApi';
 import { TopBar } from '@/components/shared/TopBar';
 import { DistortedBackground } from '@/components/shared/DistortedBackground';
-
-const GOLD = '#D4AF37';
+import { useThemeColors } from '@/context/ThemeContext';
 
 const steps = [
     { title: 'Basics', description: 'Tell us about yourself' },
@@ -63,41 +62,43 @@ const LANGUAGE_OPTIONS = [
     'Hindi', 'Portuguese', 'Russian', 'Arabic', 'Italian', 'Telugu', 'Tamil', 'Kannada', 'Malayalam',
 ];
 
-/* ─── Shared dark-glass input styling ─── */
-const inputSx = {
-    '& .MuiOutlinedInput-root': {
-        borderRadius: 2,
-        bgcolor: 'rgba(255,255,255,0.03)',
-        '& fieldset': { borderColor: 'rgba(255,255,255,0.1)' },
-        '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
-        '&.Mui-focused fieldset': { borderColor: GOLD },
-    },
-    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.5)' },
-    '& .MuiInputBase-input': { color: 'white' },
-    '& .MuiInputBase-input::placeholder': { color: 'rgba(255,255,255,0.3)' },
-};
-
-const acSlotProps = {
-    paper: {
-        sx: {
-            bgcolor: '#1a1a1a',
-            border: '1px solid rgba(255,255,255,0.1)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-            '& .MuiAutocomplete-option': {
-                color: 'rgba(255,255,255,0.8)',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' },
-                '&[aria-selected="true"]': { bgcolor: 'rgba(212,175,55,0.12)', color: GOLD },
-                '&[aria-selected="true"]:hover': { bgcolor: 'rgba(212,175,55,0.18)' },
-            },
-            '& .MuiAutocomplete-noOptions': { color: 'rgba(255,255,255,0.4)' },
-        },
-    },
-};
-
 export default function CreateProfilePage() {
     const [activeStep, setActiveStep] = useState(0);
     const [isEditMode, setIsEditMode] = useState(false);
     const router = useRouter();
+    const c = useThemeColors();
+    const GOLD = c.gold;
+
+    /* ─── Shared dark-glass input styling ─── */
+    const inputSx = {
+        '& .MuiOutlinedInput-root': {
+            borderRadius: 2,
+            bgcolor: c.surface,
+            '& fieldset': { borderColor: c.borderLight },
+            '&:hover fieldset': { borderColor: c.border },
+            '&.Mui-focused fieldset': { borderColor: GOLD },
+        },
+        '& .MuiInputLabel-root': { color: c.textSecondary },
+        '& .MuiInputBase-input': { color: c.textPrimary },
+        '& .MuiInputBase-input::placeholder': { color: c.textMuted },
+    };
+
+    const acSlotProps = {
+        paper: {
+            sx: {
+                bgcolor: c.cardBg,
+                border: c.cardBorder,
+                boxShadow: c.shadowHover,
+                '& .MuiAutocomplete-option': {
+                    color: c.textPrimary,
+                    '&:hover': { bgcolor: c.surfaceHover },
+                    '&[aria-selected="true"]': { bgcolor: c.goldBg, color: GOLD },
+                    '&[aria-selected="true"]:hover': { bgcolor: c.goldMuted },
+                },
+                '& .MuiAutocomplete-noOptions': { color: c.textMuted },
+            },
+        },
+    };
 
     const { control, handleSubmit, watch, setValue, reset, formState: { errors, isSubmitting } } = useForm<ProfileData>({
         defaultValues: {
@@ -174,11 +175,11 @@ export default function CreateProfilePage() {
                                 sx={{
                                     width: 100,
                                     height: 100,
-                                    bgcolor: 'rgba(212,175,55,0.15)',
+                                    bgcolor: c.goldBg,
                                     color: GOLD,
                                     fontSize: '2.5rem',
                                     fontWeight: 700,
-                                    border: `2px solid ${GOLD}40`,
+                                    border: `2px solid ${c.goldBorder}`,
                                 }}
                             >
                                 {watch('name')?.[0]?.toUpperCase() || <Person />}
@@ -212,14 +213,14 @@ export default function CreateProfilePage() {
                                         fullWidth
                                         disabled={isEditMode}
                                         InputProps={{
-                                            startAdornment: <InputAdornment position="start"><Typography sx={{ color: 'rgba(255,255,255,0.4)' }}>@</Typography></InputAdornment>
+                                            startAdornment: <InputAdornment position="start"><Typography sx={{ color: c.textMuted }}>@</Typography></InputAdornment>
                                         }}
                                         error={!!errors.username}
                                         helperText={isEditMode ? 'Username cannot be changed' : errors.username?.message}
                                         sx={{
                                             ...inputSx,
-                                            '& .MuiInputBase-input.Mui-disabled': { WebkitTextFillColor: 'rgba(255,255,255,0.5)' },
-                                            '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.06)' },
+                                            '& .MuiInputBase-input.Mui-disabled': { WebkitTextFillColor: c.textSecondary },
+                                            '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': { borderColor: c.borderLight },
                                         }}
                                     />
                                 )}
@@ -241,8 +242,8 @@ export default function CreateProfilePage() {
                                     helperText={isEditMode ? 'Email cannot be changed' : errors.email?.message}
                                     sx={{
                                         ...inputSx,
-                                        '& .MuiInputBase-input.Mui-disabled': { WebkitTextFillColor: 'rgba(255,255,255,0.5)' },
-                                        '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.06)' },
+                                        '& .MuiInputBase-input.Mui-disabled': { WebkitTextFillColor: c.textSecondary },
+                                        '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': { borderColor: c.borderLight },
                                     }}
                                 />
                             )}
@@ -320,10 +321,10 @@ export default function CreateProfilePage() {
                                                 label={option}
                                                 sx={{
                                                     fontWeight: 500,
-                                                    bgcolor: 'rgba(212,175,55,0.15)',
+                                                    bgcolor: c.goldBg,
                                                     color: GOLD,
-                                                    border: `1px solid ${GOLD}40`,
-                                                    '& .MuiChip-deleteIcon': { color: `${GOLD}80` },
+                                                    border: `1px solid ${c.goldBorder}`,
+                                                    '& .MuiChip-deleteIcon': { color: c.textSecondary, '&:hover': { color: GOLD } },
                                                 }}
                                             />
                                         ))
@@ -361,8 +362,9 @@ export default function CreateProfilePage() {
                                                 label={option}
                                                 variant="outlined"
                                                 sx={{
-                                                    color: 'rgba(255,255,255,0.7)',
-                                                    borderColor: 'rgba(255,255,255,0.15)',
+                                                    color: c.textPrimary,
+                                                    borderColor: c.borderLight,
+                                                    '& .MuiChip-deleteIcon': { color: c.textMuted, '&:hover': { color: c.textSecondary } },
                                                 }}
                                             />
                                         ))
@@ -372,7 +374,7 @@ export default function CreateProfilePage() {
                         />
 
                         <Box>
-                            <Typography variant="subtitle2" sx={{ mb: 2, color: 'rgba(255,255,255,0.5)' }}>
+                            <Typography variant="subtitle2" sx={{ mb: 2, color: c.textSecondary }}>
                                 Experience Level
                             </Typography>
                             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -391,10 +393,10 @@ export default function CreateProfilePage() {
                                                     clickable
                                                     sx={{
                                                         fontWeight: 500,
-                                                        bgcolor: field.value === levelKey ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.05)',
-                                                        color: field.value === levelKey ? GOLD : 'rgba(255,255,255,0.6)',
-                                                        border: `1px solid ${field.value === levelKey ? GOLD + '40' : 'rgba(255,255,255,0.1)'}`,
-                                                        '&:hover': { bgcolor: 'rgba(212,175,55,0.1)' },
+                                                        bgcolor: field.value === levelKey ? c.goldBg : c.surfaceHover,
+                                                        color: field.value === levelKey ? GOLD : c.textSecondary,
+                                                        border: `1px solid ${field.value === levelKey ? c.goldBorder : c.borderLight}`,
+                                                        '&:hover': { bgcolor: c.goldMuted },
                                                     }}
                                                 />
                                             )}
@@ -439,8 +441,9 @@ export default function CreateProfilePage() {
                                                 label={option}
                                                 variant="outlined"
                                                 sx={{
-                                                    color: 'rgba(255,255,255,0.7)',
-                                                    borderColor: 'rgba(255,255,255,0.15)',
+                                                    color: c.textPrimary,
+                                                    borderColor: c.borderLight,
+                                                    '& .MuiChip-deleteIcon': { color: c.textMuted, '&:hover': { color: c.textSecondary } },
                                                 }}
                                             />
                                         ))
@@ -479,8 +482,9 @@ export default function CreateProfilePage() {
                                                 label={option}
                                                 variant="outlined"
                                                 sx={{
-                                                    color: 'rgba(255,255,255,0.7)',
-                                                    borderColor: 'rgba(255,255,255,0.15)',
+                                                    color: c.textPrimary,
+                                                    borderColor: c.borderLight,
+                                                    '& .MuiChip-deleteIcon': { color: c.textMuted, '&:hover': { color: c.textSecondary } },
                                                 }}
                                             />
                                         ))
@@ -503,7 +507,7 @@ export default function CreateProfilePage() {
                                         error={!!errors.availability_hours}
                                         helperText={errors.availability_hours?.message}
                                         InputProps={{
-                                            endAdornment: <InputAdornment position="end"><Typography sx={{ color: 'rgba(255,255,255,0.4)' }}>hrs/week</Typography></InputAdornment>
+                                            endAdornment: <InputAdornment position="end"><Typography sx={{ color: c.textMuted }}>hrs/week</Typography></InputAdornment>
                                         }}
                                         sx={inputSx}
                                     />
@@ -532,7 +536,7 @@ export default function CreateProfilePage() {
             case 3:
                 return (
                     <Stack spacing={3}>
-                        <Typography variant="body2" sx={{ mb: 1, color: 'rgba(255,255,255,0.5)' }}>
+                        <Typography variant="body2" sx={{ mb: 1, color: c.textMuted }}>
                             Connect your social profiles so teams can learn more about you.
                         </Typography>
 
@@ -548,8 +552,8 @@ export default function CreateProfilePage() {
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
-                                                <GitHub sx={{ mr: 0.5, color: 'rgba(255,255,255,0.5)' }} />
-                                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)' }}>github.com/</Typography>
+                                                <GitHub sx={{ mr: 0.5, color: c.textMuted }} />
+                                                <Typography variant="body2" sx={{ color: c.textSecondary }}>github.com/</Typography>
                                             </InputAdornment>
                                         )
                                     }}
@@ -570,8 +574,8 @@ export default function CreateProfilePage() {
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
-                                                <LinkedIn sx={{ mr: 0.5, color: 'rgba(255,255,255,0.5)' }} />
-                                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)' }}>linkedin.com/in/</Typography>
+                                                <LinkedIn sx={{ mr: 0.5, color: c.textMuted }} />
+                                                <Typography variant="body2" sx={{ color: c.textSecondary }}>linkedin.com/in/</Typography>
                                             </InputAdornment>
                                         )
                                     }}
@@ -592,8 +596,8 @@ export default function CreateProfilePage() {
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
-                                                <Language sx={{ mr: 0.5, color: 'rgba(255,255,255,0.5)' }} />
-                                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)' }}>https://</Typography>
+                                                <Language sx={{ mr: 0.5, color: c.textMuted }} />
+                                                <Typography variant="body2" sx={{ color: c.textSecondary }}>https://</Typography>
                                             </InputAdornment>
                                         )
                                     }}
@@ -610,7 +614,7 @@ export default function CreateProfilePage() {
     };
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: '#050505', color: 'white', position: 'relative' }}>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'transparent', color: c.textPrimary, position: 'relative' }}>
             <DistortedBackground />
             <TopBar />
 
@@ -622,11 +626,11 @@ export default function CreateProfilePage() {
                             component={Link}
                             href="/profile"
                             startIcon={<ArrowBack />}
-                            sx={{ color: 'rgba(255,255,255,0.6)', textTransform: 'none', '&:hover': { color: 'white' } }}
+                            sx={{ color: c.textSecondary, textTransform: 'none', '&:hover': { color: c.textPrimary } }}
                         >
                             Back to Profile
                         </Button>
-                        <IconButton onClick={() => router.push('/profile')} sx={{ color: 'rgba(255,255,255,0.4)' }}>
+                        <IconButton onClick={() => router.push('/profile')} sx={{ color: c.textMuted }}>
                             <Close />
                         </IconButton>
                     </Stack>
@@ -636,10 +640,10 @@ export default function CreateProfilePage() {
                         sx={{
                             p: { xs: 3, md: 5 },
                             borderRadius: 4,
-                            bgcolor: 'rgba(255,255,255,0.02)',
-                            border: '1px solid rgba(255,255,255,0.06)',
+                            bgcolor: c.cardBg,
+                            border: c.cardBorder,
                             backdropFilter: 'blur(20px)',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                            boxShadow: c.shadowHover,
                         }}
                     >
                         {/* Title */}
@@ -654,7 +658,7 @@ export default function CreateProfilePage() {
                             }}>
                                 {isEditMode ? 'Update Your Profile' : 'Create Your Profile'}
                             </Typography>
-                            <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                            <Typography variant="body1" sx={{ color: c.textSecondary }}>
                                 {steps[activeStep].description}
                             </Typography>
                         </Box>
@@ -662,10 +666,10 @@ export default function CreateProfilePage() {
                         {/* Progress Bar */}
                         <Box sx={{ mb: 5 }}>
                             <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
-                                <Typography variant="body2" fontWeight="600" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                                <Typography variant="body2" fontWeight="600" sx={{ color: c.textPrimary }}>
                                     Step {activeStep + 1} of {steps.length}
                                 </Typography>
-                                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)' }}>
+                                <Typography variant="body2" sx={{ color: c.textMuted }}>
                                     {steps[activeStep].title}
                                 </Typography>
                             </Stack>
@@ -675,7 +679,7 @@ export default function CreateProfilePage() {
                                 sx={{
                                     height: 6,
                                     borderRadius: 4,
-                                    bgcolor: 'rgba(255,255,255,0.06)',
+                                    bgcolor: c.surfaceHover,
                                     '& .MuiLinearProgress-bar': {
                                         borderRadius: 4,
                                         background: `linear-gradient(90deg, ${GOLD}, #F0C040)`,
@@ -693,7 +697,7 @@ export default function CreateProfilePage() {
                                         width: 32,
                                         height: 4,
                                         borderRadius: 2,
-                                        bgcolor: i <= activeStep ? GOLD : 'rgba(255,255,255,0.1)',
+                                        bgcolor: i <= activeStep ? GOLD : c.borderLight,
                                         transition: 'background-color 0.3s',
                                     }}
                                 />
@@ -723,10 +727,10 @@ export default function CreateProfilePage() {
                                     onClick={() => setActiveStep(prev => prev - 1)}
                                     startIcon={<ArrowBack />}
                                     sx={{
-                                        color: 'rgba(255,255,255,0.5)',
+                                        color: c.textSecondary,
                                         textTransform: 'none',
-                                        '&:hover': { color: 'white' },
-                                        '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)' },
+                                        '&:hover': { color: c.textPrimary },
+                                        '&.Mui-disabled': { color: c.textMuted },
                                     }}
                                 >
                                     Back
@@ -747,8 +751,8 @@ export default function CreateProfilePage() {
                                             textTransform: 'none',
                                             fontWeight: 700,
                                             px: 4,
-                                            boxShadow: `0 3px 12px rgba(212,175,55,0.3)`,
-                                            '&:hover': { background: `linear-gradient(45deg, #c9a430 30%, ${GOLD} 90%)` },
+                                            boxShadow: `0 3px 12px ${c.goldBg}`,
+                                            '&:hover': { background: `linear-gradient(45deg, #F0C040 30%, ${GOLD} 90%)` },
                                         }}
                                     >
                                         {isSubmitting ? 'Saving...' : (isEditMode ? 'Update Profile' : 'Complete Profile')}
@@ -766,8 +770,8 @@ export default function CreateProfilePage() {
                                             textTransform: 'none',
                                             fontWeight: 700,
                                             px: 4,
-                                            boxShadow: `0 3px 12px rgba(212,175,55,0.3)`,
-                                            '&:hover': { background: `linear-gradient(45deg, #c9a430 30%, ${GOLD} 90%)` },
+                                            boxShadow: `0 3px 12px ${c.goldBg}`,
+                                            '&:hover': { background: `linear-gradient(45deg, #F0C040 30%, ${GOLD} 90%)` },
                                         }}
                                     >
                                         Continue
