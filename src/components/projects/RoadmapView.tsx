@@ -8,6 +8,15 @@ import {
     IconButton,
     Tabs,
     Tab,
+    Button,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField,
+    MenuItem,
+    CircularProgress,
+    Tooltip,
 } from '@mui/material';
 import {
     AccessTime,
@@ -16,15 +25,23 @@ import {
     ViewKanban,
     List as ListIcon,
     Lock,
+    Add as AddIcon,
+    Edit as EditIcon,
+    Delete as DeleteIcon,
+    MoreHoriz,
 } from '@mui/icons-material';
-import { Sprint, Task } from '@/utils/projectApi';
+import { Sprint, Task, projectApi } from '@/utils/projectApi';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useThemeColors } from '@/context/ThemeContext';
 
 interface RoadmapViewProps {
+    projectId: string;
     roadmap: Sprint[];
     extractedFeatures: string[];
     onTaskMove?: (taskId: string, newStatus: string) => void;
+    onRoadmapUpdate?: () => void;
     currentSprintNumber?: number;
+    isOwner?: boolean;
 }
 
 const MotionPaper = motion(Paper);
@@ -38,15 +55,20 @@ const getPriorityColor = (priority?: string) => {
     }
 };
 
-const TaskCard = ({ task, onTaskMove, draggedTaskId, onDragStart, locked }: {
+const TaskCard = ({ task, onTaskMove, draggedTaskId, onDragStart, locked, onEdit, onDelete, isOwner }: {
     task: Task;
     onTaskMove?: (taskId: string, newStatus: string) => void;
     draggedTaskId: string | null;
     onDragStart: (e: React.DragEvent, taskId: string) => void;
     locked?: boolean;
+    onEdit?: (task: Task) => void;
+    onDelete?: (taskId: string) => void;
+    isOwner?: boolean;
 }) => (
     <MotionPaper
         layout
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
         draggable={!!onTaskMove && !locked}
         onDragStart={(e) => !locked && onDragStart(e as unknown as React.DragEvent, task.id)}
         elevation={0}
@@ -57,17 +79,23 @@ const TaskCard = ({ task, onTaskMove, draggedTaskId, onDragStart, locked }: {
             borderColor: 'divider',
             bgcolor: 'background.paper',
             mb: 1.5,
+            position: 'relative',
             cursor: locked ? 'not-allowed' : onTaskMove ? 'grab' : 'default',
             '&:active': { cursor: locked ? 'not-allowed' : onTaskMove ? 'grabbing' : 'default' },
             opacity: locked ? 0.4 : draggedTaskId === task.id ? 0.5 : 1,
             pointerEvents: locked ? 'none' : 'auto',
             filter: locked ? 'grayscale(0.5)' : 'none',
-            transition: 'opacity 0.3s, filter 0.3s',
+            transition: 'opacity 0.3s, filter 0.3s, transform 0.2s',
+            '&:hover': {
+                transform: locked ? 'none' : 'translateY(-2px)',
+                borderColor: 'primary.main',
+                '& .task-actions': { opacity: 1 }
+            }
         }}
     >
         <Stack spacing={1}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                <Typography variant="subtitle2" fontWeight="600" sx={{ lineHeight: 1.3 }}>
+                <Typography variant="subtitle2" fontWeight="600" sx={{ lineHeight: 1.3, pr: isOwner ? 4 : 0 }}>
                     {task.title}
                 </Typography>
                 <Chip
@@ -78,6 +106,28 @@ const TaskCard = ({ task, onTaskMove, draggedTaskId, onDragStart, locked }: {
                     sx={{ height: 20, fontSize: '0.65rem' }}
                 />
             </Stack>
+            
+            {isOwner && !locked && (
+                <Box className="task-actions" sx={{ 
+                    position: 'absolute', 
+                    top: 8, 
+                    right: 8, 
+                    opacity: 0, 
+                    transition: 'opacity 0.2s',
+                    display: 'flex',
+                    background: 'rgba(255,255,255,0.9)',
+                    borderRadius: 1,
+                    boxShadow: 1
+                }}>
+                    <IconButton size="small" onClick={() => onEdit?.(task)} sx={{ p: 0.5 }}>
+                        <EditIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => onDelete?.(task.id)} sx={{ p: 0.5, color: 'error.main' }}>
+                        <DeleteIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                </Box>
+            )}
+
             {task.description && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                     {task.description}
@@ -105,10 +155,27 @@ const TaskCard = ({ task, onTaskMove, draggedTaskId, onDragStart, locked }: {
     </MotionPaper>
 );
 
-export default function RoadmapView({ roadmap, extractedFeatures, onTaskMove, currentSprintNumber }: RoadmapViewProps) {
+export default function RoadmapView({ projectId, roadmap, extractedFeatures, onTaskMove, onRoadmapUpdate, currentSprintNumber, isOwner }: RoadmapViewProps) {
+    const c = useThemeColors();
+    const GOLD = c.gold;
     const [selectedSprintIndex, setSelectedSprintIndex] = useState(0);
     const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
     const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+
+    // Modal state
+    const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+    const [editingTask, setEditingTask] = useState<Task | null>(null);
+    const [dialogLoading, setDialogLoading] = useState(false);
+    const [formStatus, setFormStatus] = useState('todo');
+
+    const [taskForm, setTaskForm] = useState({
+        title: '',
+        description: '',
+        assignee: '',
+        role: '',
+        estimate: '',
+        priority: 'Medium',
+    });
 
     const currentSprint = roadmap[selectedSprintIndex];
 
@@ -156,6 +223,74 @@ export default function RoadmapView({ roadmap, extractedFeatures, onTaskMove, cu
             onTaskMove(taskId, status);
         }
         setDraggedTaskId(null);
+    };
+
+    const handleOpenAddTask = (status: string) => {
+        setEditingTask(null);
+        setFormStatus(status);
+        setTaskForm({
+            title: '',
+            description: '',
+            assignee: '',
+            role: '',
+            estimate: '',
+            priority: 'Medium',
+        });
+        setTaskDialogOpen(true);
+    };
+
+    const handleOpenEditTask = (task: Task) => {
+        setEditingTask(task);
+        setFormStatus(task.status);
+        setTaskForm({
+            title: task.title,
+            description: task.description || '',
+            assignee: task.assignee || '',
+            role: task.role || '',
+            estimate: task.estimate || '',
+            priority: task.priority || 'Medium',
+        });
+        setTaskDialogOpen(true);
+    };
+
+    const handleDeleteTask = async (taskId: string) => {
+        if (!window.confirm('Are you sure you want to delete this task?')) return;
+        try {
+            await projectApi.deleteTask(projectId, taskId);
+            onRoadmapUpdate?.();
+        } catch (err) {
+            console.error('Failed to delete task', err);
+            alert('Failed to delete task');
+        }
+    };
+
+    const handleSaveTask = async () => {
+        if (!taskForm.title.trim()) return;
+        setDialogLoading(true);
+        try {
+            if (editingTask) {
+                await projectApi.updateTask({
+                    project_id: projectId,
+                    task_id: editingTask.id,
+                    ...taskForm,
+                    status: formStatus
+                });
+            } else {
+                await projectApi.addTask({
+                    project_id: projectId,
+                    sprint_number: currentSprint.sprint_number,
+                    ...taskForm,
+                    status: formStatus
+                });
+            }
+            setTaskDialogOpen(false);
+            onRoadmapUpdate?.();
+        } catch (err) {
+            console.error('Failed to save task', err);
+            alert('Failed to save task');
+        } finally {
+            setDialogLoading(false);
+        }
     };
 
     const formatDate = (dateStr?: string) => {
@@ -357,6 +492,29 @@ export default function RoadmapView({ roadmap, extractedFeatures, onTaskMove, cu
                                                     sx={{ height: 20, fontWeight: 700 }}
                                                 />
                                             </Stack>
+
+                                            {isOwner && !isSprintLocked && (
+                                                <Button
+                                                    fullWidth
+                                                    startIcon={<AddIcon />}
+                                                    onClick={() => handleOpenAddTask(status)}
+                                                    sx={{ 
+                                                        mb: 2, 
+                                                        textTransform: 'none', 
+                                                        color: 'text.secondary',
+                                                        border: '1px dashed',
+                                                        borderColor: 'divider',
+                                                        borderRadius: 2,
+                                                        '&:hover': {
+                                                            borderColor: 'primary.main',
+                                                            bgcolor: 'action.hover'
+                                                        }
+                                                    }}
+                                                >
+                                                    Add Task
+                                                </Button>
+                                            )}
+
                                             <Stack spacing={0}>
                                                 {currentSprint.tasks
                                                     .filter(t => {
@@ -372,6 +530,9 @@ export default function RoadmapView({ roadmap, extractedFeatures, onTaskMove, cu
                                                             draggedTaskId={draggedTaskId}
                                                             onDragStart={handleDragStart}
                                                             locked={isSprintLocked}
+                                                            onEdit={handleOpenEditTask}
+                                                            onDelete={handleDeleteTask}
+                                                            isOwner={isOwner}
                                                         />
                                                     ))}
                                             </Stack>
@@ -389,11 +550,228 @@ export default function RoadmapView({ roadmap, extractedFeatures, onTaskMove, cu
                                         draggedTaskId={draggedTaskId}
                                         onDragStart={handleDragStart}
                                         locked={isSprintLocked}
+                                        onEdit={handleOpenEditTask}
+                                        onDelete={handleDeleteTask}
+                                        isOwner={isOwner}
                                     />
                                 ))}
                             </Stack>
                         )}
                     </Box>
+
+                    {/* Task Dialog */}
+                    <Dialog 
+                        open={taskDialogOpen} 
+                        onClose={() => !dialogLoading && setTaskDialogOpen(false)} 
+                        fullWidth 
+                        maxWidth="sm"
+                        PaperProps={{
+                            sx: {
+                                borderRadius: 4,
+                                bgcolor: 'rgba(10, 10, 10, 0.7)',
+                                border: `1px solid ${c.border}`,
+                                backdropFilter: 'blur(20px)',
+                                color: c.textPrimary,
+                                boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.8)',
+                            }
+                        }}
+                    >
+                        <DialogTitle sx={{ fontWeight: 700, fontFamily: 'Space Grotesk', pb: 1 }}>
+                            {editingTask ? 'Edit Task' : 'Add New Task'}
+                        </DialogTitle>
+                        <DialogContent sx={{ borderColor: c.divider }}>
+                            <Stack spacing={3} sx={{ mt: 2 }}>
+                                <TextField
+                                    label="Task Title"
+                                    fullWidth
+                                    required
+                                    value={taskForm.title}
+                                    onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                            bgcolor: 'rgba(255,255,255,0.03)',
+                                            '& fieldset': { borderColor: c.border },
+                                            '&:hover fieldset': { borderColor: GOLD },
+                                            '&.Mui-focused fieldset': { borderColor: GOLD },
+                                        },
+                                        '& .MuiInputLabel-root': { color: c.textSecondary },
+                                        '& .MuiInputLabel-root.Mui-focused': { color: GOLD },
+                                    }}
+                                />
+                                <TextField
+                                    label="Description"
+                                    fullWidth
+                                    multiline
+                                    rows={3}
+                                    value={taskForm.description}
+                                    onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                            bgcolor: 'rgba(255,255,255,0.03)',
+                                            '& fieldset': { borderColor: c.border },
+                                            '&:hover fieldset': { borderColor: GOLD },
+                                            '&.Mui-focused fieldset': { borderColor: GOLD },
+                                        },
+                                        '& .MuiInputLabel-root': { color: c.textSecondary },
+                                        '& .MuiInputLabel-root.Mui-focused': { color: GOLD },
+                                    }}
+                                />
+                                <Stack direction="row" spacing={2}>
+                                    <TextField
+                                        label="Assignee"
+                                        fullWidth
+                                        value={taskForm.assignee}
+                                        onChange={(e) => setTaskForm({ ...taskForm, assignee: e.target.value })}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: 2,
+                                                bgcolor: 'rgba(255,255,255,0.03)',
+                                                '& fieldset': { borderColor: c.border },
+                                                '&:hover fieldset': { borderColor: GOLD },
+                                                '&.Mui-focused fieldset': { borderColor: GOLD },
+                                            },
+                                            '& .MuiInputLabel-root': { color: c.textSecondary },
+                                        }}
+                                    />
+                                    <TextField
+                                        label="Role"
+                                        fullWidth
+                                        value={taskForm.role}
+                                        onChange={(e) => setTaskForm({ ...taskForm, role: e.target.value })}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: 2,
+                                                bgcolor: 'rgba(255,255,255,0.03)',
+                                                '& fieldset': { borderColor: c.border },
+                                                '&:hover fieldset': { borderColor: GOLD },
+                                                '&.Mui-focused fieldset': { borderColor: GOLD },
+                                            },
+                                            '& .MuiInputLabel-root': { color: c.textSecondary },
+                                        }}
+                                    />
+                                </Stack>
+                                <Stack direction="row" spacing={2}>
+                                    <TextField
+                                        label="Estimate (e.g. 4h)"
+                                        fullWidth
+                                        value={taskForm.estimate}
+                                        onChange={(e) => setTaskForm({ ...taskForm, estimate: e.target.value })}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: 2,
+                                                bgcolor: 'rgba(255,255,255,0.03)',
+                                                '& fieldset': { borderColor: c.border },
+                                                '&:hover fieldset': { borderColor: GOLD },
+                                                '&.Mui-focused fieldset': { borderColor: GOLD },
+                                            },
+                                            '& .MuiInputLabel-root': { color: c.textSecondary },
+                                        }}
+                                    />
+                                    <TextField
+                                        select
+                                        label="Priority"
+                                        fullWidth
+                                        value={taskForm.priority}
+                                        onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value })}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: 2,
+                                                bgcolor: 'rgba(255,255,255,0.03)',
+                                                '& fieldset': { borderColor: c.border },
+                                                '&:hover fieldset': { borderColor: GOLD },
+                                                '&.Mui-focused fieldset': { borderColor: GOLD },
+                                            },
+                                            '& .MuiInputLabel-root': { color: c.textSecondary },
+                                        }}
+                                        SelectProps={{
+                                            MenuProps: {
+                                                PaperProps: {
+                                                    sx: {
+                                                        bgcolor: 'rgba(15, 15, 15, 0.95)',
+                                                        backdropFilter: 'blur(10px)',
+                                                        border: `1px solid ${c.border}`,
+                                                        color: '#fff'
+                                                    }
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        <MenuItem value="High">High</MenuItem>
+                                        <MenuItem value="Medium">Medium</MenuItem>
+                                        <MenuItem value="Low">Low</MenuItem>
+                                    </TextField>
+                                </Stack>
+                                <TextField
+                                    select
+                                    label="Status"
+                                    fullWidth
+                                    value={formStatus}
+                                    onChange={(e) => setFormStatus(e.target.value)}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                            bgcolor: 'rgba(255,255,255,0.03)',
+                                            '& fieldset': { borderColor: c.border },
+                                            '&:hover fieldset': { borderColor: GOLD },
+                                            '&.Mui-focused fieldset': { borderColor: GOLD },
+                                        },
+                                        '& .MuiInputLabel-root': { color: c.textSecondary },
+                                    }}
+                                    SelectProps={{
+                                        MenuProps: {
+                                            PaperProps: {
+                                                sx: {
+                                                    bgcolor: 'rgba(15, 15, 15, 0.95)',
+                                                    backdropFilter: 'blur(10px)',
+                                                    border: `1px solid ${c.border}`,
+                                                    color: '#fff'
+                                                }
+                                            }
+                                        }
+                                    }}
+                                >
+                                    <MenuItem value="todo">Todo</MenuItem>
+                                    <MenuItem value="In Progress">In Progress</MenuItem>
+                                    <MenuItem value="Done">Done</MenuItem>
+                                </TextField>
+                            </Stack>
+                        </DialogContent>
+                        <DialogActions sx={{ p: 3, px: 4 }}>
+                            <Button 
+                                onClick={() => setTaskDialogOpen(false)} 
+                                disabled={dialogLoading}
+                                sx={{ color: c.textSecondary, textTransform: 'none' }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button 
+                                variant="contained" 
+                                color="primary" 
+                                onClick={handleSaveTask}
+                                disabled={dialogLoading || !taskForm.title.trim()}
+                                startIcon={dialogLoading && <CircularProgress size={16} color="inherit" />}
+                                sx={{
+                                    bgcolor: GOLD,
+                                    color: 'black',
+                                    fontWeight: 600,
+                                    textTransform: 'none',
+                                    borderRadius: 2,
+                                    px: 4,
+                                    '&:hover': {
+                                        bgcolor: '#B8972E',
+                                    },
+                                    '&.Mui-disabled': {
+                                        bgcolor: 'rgba(212, 175, 55, 0.3)',
+                                        color: 'rgba(0,0,0,0.3)'
+                                    }
+                                }}
+                            >
+                                {editingTask ? 'Update Task' : 'Add Task'}
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
                 </motion.div>
             </AnimatePresence>
         </Box>

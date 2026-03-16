@@ -163,22 +163,27 @@ export default function ProjectDetailsPage() {
         }
     }, [teamData, authUserId]);
 
+    const fetchRoadmap = async () => {
+        if (!id) return;
+        try {
+            const data = await projectApi.getProjectPlan(id as string);
+            setRoadmapData({
+                project_id: data.project_id,
+                roadmap: data.roadmap,
+                extracted_features: []
+            });
+            setCurrentSprintNumber(data.current_sprint_number ?? 1);
+            setFetchedRoadmap(true);
+        } catch (error) {
+            console.error("Failed to fetch roadmap", error);
+            setFetchedRoadmap(true);
+        }
+    };
+
     // Fetch roadmap on mount
     useEffect(() => {
         if (id && !fetchedRoadmap) {
-            projectApi.getProjectPlan(id as string)
-                .then(data => {
-                    setRoadmapData({
-                        project_id: data.project_id,
-                        roadmap: data.roadmap,
-                        extracted_features: [] // Plan doesn't store this, but view needs it? Optional.
-                    });
-                    setCurrentSprintNumber(data.current_sprint_number ?? 1);
-                    setFetchedRoadmap(true);
-                })
-                .catch(() => {
-                    setFetchedRoadmap(true); // Tried fetching, none found
-                });
+            fetchRoadmap();
         }
     }, [id, fetchedRoadmap]);
 
@@ -586,10 +591,13 @@ export default function ProjectDetailsPage() {
                         </MotionPaper>
                     ) : tabValue === 1 && roadmapData ? (
                         <RoadmapView
+                            projectId={id as string}
                             roadmap={roadmapData.roadmap}
                             extractedFeatures={roadmapData.extracted_features || []}
                             onTaskMove={isOwner ? handleTaskMove : undefined}
+                            onRoadmapUpdate={fetchRoadmap}
                             currentSprintNumber={currentSprintNumber}
+                            isOwner={isOwner}
                         />
                     ) : tabValue === 1 ? (
                         <MotionPaper

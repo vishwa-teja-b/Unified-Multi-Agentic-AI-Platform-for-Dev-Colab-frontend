@@ -214,6 +214,43 @@ export const projectApi = {
         return response.data;
     },
 
+    addTask: async (data: {
+        project_id: string;
+        sprint_number: number;
+        title: string;
+        description?: string;
+        assignee?: string;
+        role?: string;
+        estimate?: string;
+        priority?: string;
+        status: string;
+    }) => {
+        const response = await api.post('/api/planned-projects/tasks', data);
+        return response.data;
+    },
+
+    updateTask: async (data: {
+        project_id: string;
+        task_id: string;
+        title?: string;
+        description?: string;
+        assignee?: string;
+        role?: string;
+        estimate?: string;
+        priority?: string;
+        status?: string;
+    }) => {
+        const response = await api.put('/api/planned-projects/tasks', data);
+        return response.data;
+    },
+
+    deleteTask: async (projectId: string, taskId: string) => {
+        const response = await api.delete('/api/planned-projects/tasks', {
+            params: { project_id: projectId, task_id: taskId }
+        });
+        return response.data;
+    },
+
     // ---- Rooms ----
 
     createRoom: async (data: { project_id: string; created_by: string }) => {
