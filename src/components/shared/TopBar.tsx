@@ -84,7 +84,7 @@ export const TopBar = () => {
     if (!animate) {
         return (
             <Box sx={{
-                position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)',
+                position: 'fixed', top: 36, left: '50%', transform: 'translateX(-50%)',
                 width: { xs: '95%', sm: '85%', md: '80%', lg: '65%' }, maxWidth: '1200px',
                 height: TOPBAR_HEIGHT, zIndex: 100, display: 'flex', alignItems: 'center',
                 justifyContent: 'space-between', px: { xs: 2, md: 3, lg: 5 },
@@ -174,7 +174,7 @@ export const TopBar = () => {
     return (
         <Box sx={{
             position: 'fixed',
-            top: 24,
+            top: 36,
             left: '50%',
             transform: 'translateX(-50%)',
             width: { xs: '95%', sm: '85%', md: '80%', lg: '65%' },

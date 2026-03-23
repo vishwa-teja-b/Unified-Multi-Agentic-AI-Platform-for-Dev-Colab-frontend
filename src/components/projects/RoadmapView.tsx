@@ -466,8 +466,10 @@ export default function RoadmapView({ projectId, roadmap, extractedFeatures, onT
                                                 p: 2,
                                                 bgcolor: 'action.hover',
                                                 borderRadius: 3,
-                                                height: '100%',
+                                                maxHeight: '70vh',
                                                 minHeight: 300,
+                                                display: 'flex',
+                                                flexDirection: 'column',
                                                 transition: 'background-color 0.2s',
                                                 ...(draggedTaskId && !isSprintLocked && {
                                                     border: '1px dashed',
@@ -515,7 +517,15 @@ export default function RoadmapView({ projectId, roadmap, extractedFeatures, onT
                                                 </Button>
                                             )}
 
-                                            <Stack spacing={0}>
+                                            <Stack spacing={0} sx={{
+                                                flex: 1,
+                                                overflowY: 'auto',
+                                                pr: 0.5,
+                                                '&::-webkit-scrollbar': { width: 4 },
+                                                '&::-webkit-scrollbar-track': { background: 'transparent' },
+                                                '&::-webkit-scrollbar-thumb': { background: 'rgba(255,255,255,0.15)', borderRadius: 2 },
+                                                '&::-webkit-scrollbar-thumb:hover': { background: 'rgba(255,255,255,0.3)' },
+                                            }}>
                                                 {currentSprint.tasks
                                                     .filter(t => {
                                                         const s = t.status.toLowerCase();

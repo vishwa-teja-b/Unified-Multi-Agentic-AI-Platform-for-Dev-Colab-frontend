@@ -24,6 +24,88 @@ import { useThemeColors } from '@/context/ThemeContext';
 
 // ============ COMPONENTS ============
 
+const marqueeTexts = [
+    'ORCHESTRATE YOUR DEVELOPMENT LIFECYCLE',
+    '✦ BUILD ✦ COLLABORATE ✦ DEPLOY ✦ ITERATE',
+    'AI-POWERED WORKFLOWS',
+    '✦ REAL-TIME COLLABORATION ✦',
+    'THE FUTURE OF DEV IS HERE',
+    '✦ SHIP FASTER ✦ BREAK BARRIERS ✦',
+];
+
+const MarqueeBanner = () => {
+    const c = useThemeColors();
+    const repeatedTexts = [...marqueeTexts, ...marqueeTexts, ...marqueeTexts];
+
+    return (
+        <Box
+            component={motion.div}
+            initial={{ opacity: 0, scaleX: 0.8 }}
+            animate={{ opacity: 1, scaleX: 1 }}
+            transition={{ duration: 1.2, delay: 1.0, ease: [0.16, 1, 0.3, 1] }}
+            sx={{
+                position: 'absolute',
+                left: '-5%',
+                right: '-5%',
+                bottom: { xs: '4%', md: '5%' },
+                transform: 'rotate(-2deg)',
+                zIndex: 15,
+                overflow: 'hidden',
+                py: { xs: 0.8, md: 1.2 },
+                background: `linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.06) 40%, rgba(255,255,255,0.03) 100%)`,
+                backdropFilter: 'blur(2px) saturate(1.2)',
+                WebkitBackdropFilter: 'blur(2px) saturate(1.2)',
+                borderTop: '1px solid rgba(255,255,255,0.15)',
+                borderBottom: '1px solid rgba(255,255,255,0.08)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(255,255,255,0.05), 0 0 30px rgba(0,0,0,0.1)',
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'linear-gradient(90deg, rgba(0,0,0,0.5) 0%, transparent 10%, transparent 90%, rgba(0,0,0,0.5) 100%)',
+                    zIndex: 1,
+                    pointerEvents: 'none',
+                },
+                '@keyframes marquee-scroll': {
+                    '0%': { transform: 'translateX(0)' },
+                    '100%': { transform: 'translateX(-33.333%)' },
+                },
+            }}
+        >
+            <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                whiteSpace: 'nowrap',
+                animation: 'marquee-scroll 30s linear infinite',
+                width: 'max-content',
+            }}>
+                {repeatedTexts.map((text, i) => (
+                    <Typography
+                        key={i}
+                        component="span"
+                        sx={{
+                            fontFamily: 'Space Grotesk',
+                            fontWeight: 700,
+                            fontSize: { xs: '0.85rem', md: '1.1rem' },
+                            letterSpacing: '0.25em',
+                            color: c.gold,
+                            textShadow: `0 0 20px rgba(212,175,55,0.4)`,
+                            mx: { xs: 3, md: 5 },
+                            textTransform: 'uppercase',
+                            userSelect: 'none',
+                        }}
+                    >
+                        {text}
+                    </Typography>
+                ))}
+            </Box>
+        </Box>
+    );
+};
+
 const HeroSection = () => {
     const c = useThemeColors();
     return (
@@ -36,7 +118,7 @@ const HeroSection = () => {
             zIndex: 10,
             pl: { xs: 4, md: 8, lg: 12 },
             pr: { xs: 3, md: 6 },
-            mt: 4, // Add spacing for TopBar
+            mt: 4,
         }}>
             <motion.div
                 initial={{ opacity: 0, y: 100 }}
@@ -86,6 +168,9 @@ const HeroSection = () => {
                     Dashboard systems operational.
                 </Typography>
             </motion.div>
+
+            {/* Animated Marquee Banner */}
+            <MarqueeBanner />
         </Box>
     );
 };
